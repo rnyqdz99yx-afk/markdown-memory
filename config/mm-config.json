@@ -1,0 +1,49 @@
+{
+  "$schema": "./mm-config.schema.json",
+  "version": "0.1.0",
+  "namespace": "mm",
+  "default_language": "ru",
+  "user": {
+    "name": "louise",
+    "telegram_admin_id": null
+  },
+  "paths": {
+    "obsidian_vault": "C:\\Users\\louise\\Documents\\Obsidian Vault",
+    "obsidian_claude_root": "C:\\Users\\louise\\Documents\\Obsidian Vault\\Claude",
+    "obsidian_bridge": "C:\\Users\\louise\\Documents\\Obsidian Vault\\Claude\\Bridge",
+    "obsidian_bridge_archive": "C:\\Users\\louise\\Documents\\Obsidian Vault\\Claude\\Bridge\\archive",
+    "obsidian_sessions": "C:\\Users\\louise\\Documents\\Obsidian Vault\\Claude\\Sessions",
+    "obsidian_projects": "C:\\Users\\louise\\Documents\\Obsidian Vault\\Claude\\Projects",
+    "obsidian_index": "C:\\Users\\louise\\Documents\\Obsidian Vault\\Claude\\INDEX.md",
+    "skills_repo": "C:\\Users\\louise\\Desktop\\louise-skills",
+    "skills_active": "C:\\Users\\louise\\.claude\\skills",
+    "scripts_root": "C:\\Users\\louise\\Desktop\\Scripts"
+  },
+  "bot_defaults": {
+    "framework": "aiogram",
+    "framework_version": "3.x",
+    "python_version": "3.12",
+    "database_default": "sqlite",
+    "database_optional": "postgres",
+    "deploy_default": "railway",
+    "deploy_optional": "vps",
+    "language": "ru",
+    "ui_style": {
+      "emoji_heavy": true,
+      "breadcrumb_separator": "›",
+      "back_button": "⬅️ Назад",
+      "forward_button": "➡️",
+      "confirm_pattern": "⚠️ {action} {target}?"
+    }
+  },
+  "git": {
+    "default_remote": "origin",
+    "default_branch": "main",
+    "commit_style": "conventional"
+  },
+  "inbox_bot": {
+    "url": null,
+    "enabled": false,
+    "fallback_dir": "C:\\Users\\louise\\Documents\\Obsidian Vault\\Claude\\Inbox"
+  }
+}

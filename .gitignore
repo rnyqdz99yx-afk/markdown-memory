@@ -1,0 +1,29 @@
+# Local dev
+.env
+.env.local
+*.log
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Python (если в templates/ будут подмодули)
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Secrets — никогда не коммитить
+*.key
+*.pem
+*.kdbx
+config/*.local.json
