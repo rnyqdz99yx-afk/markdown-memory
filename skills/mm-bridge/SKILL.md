@@ -1,103 +1,146 @@
 ---
 name: mm-bridge
-description: Compose a ready-to-copy prompt for the user's OTHER Claude Code instance (running in PowerShell). Use when the user asks to "напиши промпт для powershell", "сгенерируй задание для другого клода", "переброс задачи в основной клод", or any request to hand off work to the PowerShell instance. Writes to Claude/Bridge/next-prompt.md in the Obsidian vault and archives the previous prompt automatically. The PowerShell instance has zero memory of this conversation, so the prompt MUST be self-contained.
+description: Compose a ready-to-copy prompt for the user's OTHER Claude Code instance (running in PowerShell). Use when the user asks to "напиши промпт для powershell", "сгенерируй задание для другого клода", "переброс задачи в основной клод", "/mm-bridge", or any request to hand off work to the PowerShell instance. Auto-reads passport.md of the target project to inject stack/conventions/constraints. Writes to Claude/Bridge/next-prompt.md in the Obsidian vault and archives the previous prompt automatically. The PowerShell instance has zero memory of this conversation, so the prompt MUST be self-contained.
 ---
 
 # mm-bridge — Prompt Composer for PowerShell Claude Code
 
-You are running in the **app instance** of Claude Code. The user has another Claude Code instance running in **PowerShell** which is the actual execution environment (where most code work happens). This skill composes a self-contained prompt that the user copy-pastes into the PowerShell instance.
+Я работаю в **app/web инстансе** Claude Code или в claude.ai. У пользователя есть **другой** Claude Code в PowerShell — там идёт реальная работа. Этот skill пишет файл-мост в Obsidian. Пользователь копипастит из файла в PowerShell-сессию.
 
-The PowerShell instance has **no memory** of this conversation. Every prompt must stand alone.
+PowerShell-инстанс **не видел** этот разговор. Каждый промпт — самодостаточен.
 
-## Config
+## Конфиг
 
-Read `C:\Users\louise\Desktop\louise-skills\config\mm-config.json` to get:
-- `paths.obsidian_bridge` — destination directory
-- `paths.obsidian_bridge_archive` — archive directory
-- `default_language` — language for prompts (default: ru)
+Прочитай `C:\Users\louise\Desktop\louise-skills\config\mm-config.json`:
+- `paths.obsidian_bridge` — куда писать `next-prompt.md`
+- `paths.obsidian_bridge_archive` — куда переносить старые промпты
+- `default_language` — `ru` по умолчанию
 
-## Process
+## Процесс
 
-1. **Gather task context from this conversation.** What does the user want done? In which project? With what constraints?
+### Шаг 1. Собери контекст задачи
 
-2. **If critical context is missing, ask before writing.** A bad prompt wastes the PowerShell session. Specifically check you know:
-   - Target working directory (absolute path).
-   - What success looks like (definition of done).
-   - Files that must be read by the other instance.
-   - Any non-obvious constraints (style, framework, deadline).
-   Don't ask more than 3 questions — if the user says "you decide" or "default", make a reasonable choice and note it in the prompt.
+Из текущего разговора пойми:
+- **Что сделать?** — действие в одном предложении
+- **В каком проекте?** — абсолютный путь
+- **Какой результат?** — definition of done
 
-3. **Archive the previous bridge prompt.** Before overwriting `next-prompt.md`:
-   - Check if `<obsidian_bridge>/next-prompt.md` exists.
-   - If yes: read its frontmatter to get `created` timestamp and `slug`. Move it (Read + Write to new path; do NOT delete the source until the new write succeeds) to `<obsidian_bridge_archive>/YYYY-MM-DD-HHMM-<slug>.md` based on its own timestamp.
-   - If the file has no slug, derive one from the first heading.
+### Шаг 2. Авто-подгрузка паспорта проекта
 
-4. **Write the new prompt** to `<obsidian_bridge>/next-prompt.md` using the format below.
+Если ты знаешь целевой путь проекта — попробуй прочитать `<project_path>/passport.md`. Из него возьми:
+- `project` (имя)
+- Стек (секция 2): язык, фреймворк, главные зависимости
+- Конвенции (секция 7)
+- **Секция 8 «Контекст для промптов»** — критично, перенеси в промпт целиком
+- Точки входа (секция 4)
+- Команды (секция 5)
 
-5. **Confirm to user** in one sentence with the absolute path. Example: `Готово. Скопируй из C:\Users\louise\Documents\Obsidian Vault\Claude\Bridge\next-prompt.md и вставь в PowerShell.`
+Если паспорта нет — попроси пользователя дать минимальный контекст (одно сообщение, не больше 3 вопросов):
+1. Целевая папка (абсолютный путь)?
+2. Какие файлы должен прочитать другой Клод первыми?
+3. Что считаем готовым?
 
-## Bridge File Format
+Если пользователь говорит «ты решай» / «default» — выбираешь сам, отмечаешь в промпте `<assumed: ...>`.
+
+### Шаг 3. Архивируй прошлый промпт
+
+Перед перезаписью `<obsidian_bridge>/next-prompt.md`:
+- Если файл существует — прочитай frontmatter (`created`, `slug`).
+- Скопируй (Read + Write) в `<obsidian_bridge_archive>/<YYYY-MM-DD-HHMM>-<slug>.md` на основе frontmatter.
+- Только после успешной записи в архив — перезапиши `next-prompt.md`.
+- Если slug отсутствует — выведи из первого `# Заголовка`.
+
+### Шаг 4. Запиши новый промпт
+
+Файл: `<obsidian_bridge>/next-prompt.md`. Формат:
 
 ```markdown
 ---
-created: <ISO 8601 timestamp, e.g. 2026-04-26T15:30:00>
-project: <project slug or "general">
-project_path: <absolute target dir>
+created: <YYYY-MM-DDTHH:MM>
+project: <project_name | "general">
+project_path: <abs_path>
 task_type: feature | bugfix | refactor | setup | research | other
-slug: <kebab-case-short-summary, max 5 words>
+slug: <kebab-case 3-5 слов>
+source: mm-bridge
+passport_used: <true | false>
 ---
 
 # Задача
-<one-paragraph imperative statement of what to do>
+
+<одно императивное предложение>
 
 # Контекст
-<2-5 sentences: why this matters, what's already in place, what NOT to touch>
+
+<2-5 предложений: зачем, что уже есть, что НЕ трогать>
+
+<Если паспорт прочитан — вставь блок:>
+**Стек проекта** (из passport.md): <язык> · <фреймворк> · <DB> · <главные зависимости через "·">
 
 # Файлы для чтения сначала
-- `<absolute path>` — <зачем>
-- `<absolute path>` — <зачем>
+
+- `<абсолютный путь>` — <зачем>
+- `<абсолютный путь>` — <зачем>
+
+<Обязательно включи: passport.md если есть>
 
 # Что нужно сделать
+
 1. <шаг>
 2. <шаг>
 3. <шаг>
 
 # Ограничения
-- <ограничение по стилю / фреймворку / зависимостям>
-- <что НЕ делать>
+
+<Из секции 8 паспорта точная копия + любые ограничения из чата>
+
+- <ограничение>
+- <ограничение>
 
 # Done when
-- [ ] <критерий 1, проверяемый>
-- [ ] <критерий 2>
-- [ ] <критерий 3>
 
-# Полезные команды (опционально)
+- [ ] <критерий, проверяемый>
+- [ ] <критерий>
+- [ ] <критерий>
+
+# Полезные команды
+
 ```bash
-# example commands the other instance might run
+# Из секции 5 паспорта или из контекста
 ```
+
+# После выполнения
+
+Когда закончишь — выполни `/mm-save-session` чтобы залогировать сессию в Obsidian.
 ```
 
-## Style rules for the prompt body
+### Шаг 5. Подтверди пользователю
 
-- **Russian by default** (per user preference). Switch to English only if the project explicitly uses English (e.g., open-source library).
-- **Imperative mood:** "Создай X", "Обнови Y", "Проверь Z" — not "Можно ли...".
-- **Absolute paths** (`C:\Users\louise\Desktop\Scripts\...`) — the PowerShell instance has its own CWD, don't assume.
-- **No references to "we" or "earlier conversation"** — the PowerShell instance wasn't there.
-- **Define done concretely.** "Бот запускается без ошибок" is good. "Бот хорошо работает" is not.
-- **Keep it tight.** 1 page max. If the task is bigger, split it into multiple bridges or recommend a GSD phase plan.
-- **Reference existing project conventions** when relevant. If the project has `CLAUDE.md` or `passport.md`, mention it: "Перед началом прочитай `CLAUDE.md` в этой папке."
-
-## When to push back instead of writing the prompt
-
-If the user's task is:
-- Vague ("сделай мне бота") → ask 1-2 clarifying questions first.
-- Multi-day scope → suggest GSD plan-phase instead, point to `/gsd-plan-phase`.
-- Trivial (one-line edit) → just describe what they should type, no need for a full bridge file.
-
-## Output at the end
+Одной строкой (не блоком):
 
 ```
-Готово. Файл: <absolute_path>
-Архив прошлого: <archive_path or "(не было)">
-Скопируй и вставь в PowerShell-сессию.
+Готово: C:\Users\louise\Documents\Obsidian Vault\Claude\Bridge\next-prompt.md (passport: <yes/no>, архив: <yes/no>). Скопируй и вставь в PowerShell.
 ```
+
+## Стиль промпта
+
+- **Русский по умолчанию** (`default_language` из конфига).
+- **Императив**: «Создай», «Обнови», «Проверь» — не «Можно ли...».
+- **Абсолютные пути Windows** (`C:\...`).
+- **Никаких отсылок** к «нашему разговору», «как мы обсуждали», «we».
+- **Конкретное Done when** — проверяемое («бот стартует без ошибок», «тест X проходит»), а не размытое («работает хорошо»).
+- **1 страница max**. Если задача больше — раздели на несколько мостов или предложи `/gsd-plan-phase` (если в проекте есть GSD).
+- **Ссылки на конвенции проекта** — если есть `CLAUDE.md` или `passport.md` в проекте, упомяни: «Перед началом прочитай passport.md и секцию 8 — там жёсткие ограничения».
+
+## Когда не писать мост, а возразить
+
+- **Расплывчато** («сделай мне бота»): задай 1-2 уточняющих вопроса.
+- **Многодневный скоуп**: предложи `/gsd-plan-phase` или разбить на серию мостов.
+- **Тривиально** (1 строка): просто скажи что вставить, без файла-моста.
+- **В паспорте секция 8 пустая**: предупреди — `Секция 8 паспорта пустая. Промпт без жёстких ограничений → риск что Клод сделает не так. Заполнить сначала?`
+
+## Edge cases
+
+- **Несколько проектов в задаче**: только один `project_path` в frontmatter (главный). Остальные упоминай в «Контексте».
+- **Bridge-папки нет**: создай (Obsidian не падает на отсутствующих папках).
+- **Архив-папки нет**: создай.
+- **Текущий промпт пустой/повреждённый**: пропусти архивацию, перезапиши.
