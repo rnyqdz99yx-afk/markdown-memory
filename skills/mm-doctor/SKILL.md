@@ -1,7 +1,7 @@
 ---
 name: mm-doctor
-version: 0.3.0
-description: Самопроверка mm-системы — junction'ы, конфиг, vault, паспорта, bridge-архив, GSD-консистентность (passport vs PROJECT.md). Auto-fix очевидного. Use when user says "проверь систему", "почему не работает", "/mm-doctor", "mm-status", "что-то сломалось", "проверь mm", "mm health". Запускать перед началом работы на новой машине ИЛИ когда что-то странно себя ведёт.
+version: 0.4.0
+description: Самопроверка mm-системы — junction'ы, конфиг, vault, паспорта, bridge-архив, GSD-консистентность (passport vs PROJECT.md), наличие сторонних плагинов (karpathy, context-mode). Auto-fix очевидного. Use when user says "проверь систему", "почему не работает", "/mm-doctor", "mm-status", "что-то сломалось", "проверь mm", "mm health". Запускать перед началом работы на новой машине ИЛИ когда что-то странно себя ведёт.
 ---
 
 # mm-doctor — System Health Check & Auto-Fix
@@ -124,6 +124,25 @@ Test-Path $item.Target  # должно быть true
 Прочитай `~/.claude/CLAUDE.md` если есть:
 - ⚠️ Если содержит дублирующие правила Sessions/Projects/INDEX (старая ручная инструкция) — намекни упростить через ссылку на `/mm-save-session`
 - ✅ Иначе — ok
+
+### 9. Сторонние интеграции (плагины, MCP)
+
+Проверь установлены ли рекомендованные плагины:
+
+- **karpathy-skills** (`~/.claude/plugins/marketplaces/karpathy-skills/`) — 4 принципа кодинга
+  - ✅ установлен / ⚠️ нет — `claude plugin marketplace add forrestchang/andrej-karpathy-skills && claude plugin install andrej-karpathy-skills@karpathy-skills`
+  - ✅ В `~/.claude/CLAUDE.md` есть секция Karpathy Guidelines (4 принципа продублированы текстом для всех проектов)
+
+- **context-mode** (`~/.claude/plugins/marketplaces/context-mode/`) — MCP-сервер экономии контекста
+  - ✅ установлен / ⚠️ нет — `claude plugin marketplace add mksglu/context-mode && claude plugin install context-mode@context-mode`
+  - Если установлен:
+    - ✅ Каталог сессий `~/.claude/context-mode/sessions/` существует и есть `.db` файлы
+    - ⚠️ База старше 90 дней без cleanup → намекни `/ctx-purge`
+    - ⚠️ Хуки контекст-мода работают параллельно с GSD-хуками — это норм, оба независимы. Если видишь медленный PostToolUse — это сумма обоих, не баг.
+    - 💡 Для расширенной диагностики используй `/ctx-doctor` (skill самого context-mode)
+  - 📊 Опционально показать накопленную статистику: `~/.context-mode/stats.json` (если есть)
+
+- **GSD hooks** в `~/.claude/hooks/` — должны быть в `settings.json` SessionStart/PreToolUse/PostToolUse. Уже проверено в этих секциях выше.
 
 ## Финальный отчёт
 
