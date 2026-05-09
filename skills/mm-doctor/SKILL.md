@@ -1,7 +1,7 @@
 ---
 name: mm-doctor
-version: 0.2.0
-description: Самопроверка mm-системы — junction'ы, конфиг, vault, паспорта, bridge-архив. Auto-fix очевидного. Use when user says "проверь систему", "почему не работает", "/mm-doctor", "mm-status", "что-то сломалось", "проверь mm", "mm health". Запускать перед началом работы на новой машине ИЛИ когда что-то странно себя ведёт.
+version: 0.3.0
+description: Самопроверка mm-системы — junction'ы, конфиг, vault, паспорта, bridge-архив, GSD-консистентность (passport vs PROJECT.md). Auto-fix очевидного. Use when user says "проверь систему", "почему не работает", "/mm-doctor", "mm-status", "что-то сломалось", "проверь mm", "mm health". Запускать перед началом работы на новой машине ИЛИ когда что-то странно себя ведёт.
 ---
 
 # mm-doctor — System Health Check & Auto-Fix
@@ -75,12 +75,42 @@ Test-Path $item.Target  # должно быть true
 Если в `cwd` или родителях есть `passport.md`:
 - ✅ Frontmatter валидный YAML
 - ✅ Все 11 секций присутствуют
+- ✅ Frontmatter содержит `gsd_version: <none|v1|v2>`
 - ⚠️ `updated:` старше 30 дней → предложи `/mm-init-project --update`
 - ⚠️ Секция 8 «Контекст для промптов» содержит маркер `<!-- TODO louise: заполни секцию 8 -->` → намекни заполнить
 - ✅ Sync с Obsidian-копией (sha256): совпадают?
 
 Также проверь:
 - ⚠️ Есть `PROJECT_PASSPORT.md` (старый формат) → предложи мигрировать `/mm-init-project`
+
+### 6.1. GSD ↔ passport консистентность (если есть GSD)
+
+Если passport `gsd_version` ≠ none, прогони cross-check:
+
+**Проверка 1: версия в passport совпадает с реальностью**
+- Если в passport `gsd_version: v1`, проверь что `<project_root>/.planning/` существует.
+- Если `gsd_version: v2` — проверь `<project_root>/.gsd/`.
+- Если расходится → `❌ passport говорит gsd_version: v1, но .planning/ не найдена. Запусти /mm-init-project --update.`
+
+**Проверка 2: scope не разъехался**
+- Если есть `.planning/PROJECT.md` (v1):
+  - Прочитай первые 30 строк и сравни с секцией 1 («Назначение») паспорта.
+  - Если **ключевые слова не пересекаются** (jaccard < 0.3 на нормализованных tokens) → `⚠️ passport.md секция 1 и .planning/PROJECT.md описывают разное. Возможно scope изменился. Обнови passport через /mm-init-project --update.`
+- Если есть `.gsd/STATE.md` или AGENTS.md → аналогично.
+
+**Проверка 3: текущая фаза не устарела в паспорте**
+- В passport секция 9 строка `Текущий milestone / phase: <X>`.
+- В `.planning/STATE.md` или `.gsd/STATE.md` — фактический current.
+- Если расходятся → `⚠️ passport.md секция 9 говорит фаза «X», STATE.md показывает «Y». Обнови.`
+
+**Проверка 4: source-of-truth direction**
+- В passport секция 9 строка `Source-of-truth для scope/requirements: <X>`.
+- Должна быть `.planning/PROJECT.md` (если GSD есть) или `passport.md` (если GSD нет).
+- Иначе → `⚠️ Source-of-truth не указан явно — две системы могут разъехаться. Заполни секцию 9.`
+
+**Проверка 5: mm не пишет в .planning/**
+- Если git log показывает что любой mm-skill коммитил файлы в `.planning/*` за последние 30 дней → `❌ mm писал в .planning/ — это нарушение контракта. Откатить вручную.`
+- (это защита от будущих багов; mm-skills не должны это делать)
 
 ### 7. Skills frontmatter
 

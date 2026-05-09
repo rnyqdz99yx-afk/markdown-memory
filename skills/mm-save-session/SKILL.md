@@ -1,7 +1,7 @@
 ---
 name: mm-save-session
-version: 0.2.0
-description: Закрывает текущую Claude Code сессию — сохраняет лог в Obsidian/Claude/Sessions/, обновляет project note, обновляет INDEX.md. Use when user says "закругляемся", "сохрани", "до завтра", "конец дня", "save session", "/mm-save-session", "закрываемся". Замена ручных правил из глобального CLAUDE.md — теперь это настоящий skill, не забудется.
+version: 0.3.0
+description: Закрывает текущую Claude Code сессию — сохраняет лог в Obsidian/Claude/Sessions/, обновляет project note, обновляет INDEX.md. Если в проекте есть GSD (.planning/ или .gsd/) — также вызывает /gsd-pause-work для technical state в HANDOFF.json. Use when user says "закругляемся", "сохрани", "до завтра", "конец дня", "save session", "/mm-save-session", "закрываемся".
 ---
 
 # mm-save-session — End-of-Session Logger
@@ -151,6 +151,20 @@ updated: <date>
 
 Если проекта ещё нет в секции «Проекты» — добавь.
 
+### Шаг 5.5. GSD-кооперация (если применимо)
+
+**Цель:** mm и GSD не дублируются. mm пишет нарратив в Obsidian. GSD пишет technical state (file paths, last error, position) в `HANDOFF.json`. Оба нужны для разных задач при resume.
+
+Алгоритм:
+1. Проверь `<project_root>/.planning/` (GSD v1) или `<project_root>/.gsd/` (v2).
+2. Если ни одного — пропусти этот шаг.
+3. Если есть — спроси одной строкой: `Также вызвать /gsd-pause-work для technical handoff (HANDOFF.json)? (y/n, дефолт y)`.
+4. На `y`:
+   - **GSD v1**: вызови skill `/gsd-pause-work` (Claude Code сам найдёт его, не пиши `.planning/HANDOFF.json` сам — там охраняющий хук).
+   - **GSD v2**: предложи юзеру выполнить в терминале `gsd handoff` (skill этот не запускает CLI).
+5. На `n` — продолжай без GSD-handoff, упомяни в финальном отчёте: «GSD handoff пропущен по запросу».
+6. Если `/gsd-pause-work` вернул ошибку — не падай, упомяни в отчёте: «GSD pause-work failed: <reason>», продолжай.
+
 ### Шаг 6. Подтверди
 
 Выведи (короткий блок, без воды):
@@ -162,6 +176,7 @@ updated: <date>
 Файл: <abs_path>/<session_file>
 Project note обновлён: <abs_path>
 INDEX.md обновлён.
+GSD handoff: <выполнен через /gsd-pause-work | пропущен | n/a — нет GSD>
 
 Открытых вопросов: <K>
 Следующий шаг: <первый из открытых вопросов или "не указан">

@@ -1,7 +1,7 @@
 ---
 name: mm-resume
-version: 0.2.0
-description: Восстановить контекст в начале сессии или после /clear. Читает passport.md + dashboard + последнюю сессию + git status + (если есть GSD) .planning/STATE.md и текущую фазу. Выдаёт компактную сводку «где мы». Use when user says "ну что у нас", "напомни где мы остановились", "вернулся", "возобновляю", "/mm resume", "/mm start", "/mm context", "что у нас по проекту", "где мы" в начале новой сессии Claude Code или после /clear.
+version: 0.3.0
+description: Восстановить контекст в начале сессии или после /clear. Читает passport.md + dashboard + последнюю сессию + git status + (если есть GSD) полный контекст планирования (.planning/ для v1 или .gsd/ для v2 — STATE, ROADMAP, текущий phase CONTEXT/PLAN, HANDOFF.json). Выдаёт компактную сводку «где мы». Use when user says "ну что у нас", "напомни где мы остановились", "вернулся", "возобновляю", "/mm resume", "/mm start", "/mm context", "что у нас по проекту", "где мы" в начале новой сессии Claude Code или после /clear.
 ---
 
 # mm-resume — Context Restore for Claude Code
@@ -57,15 +57,37 @@ git log --oneline -5            # последние коммиты
 git stash list 2>/dev/null      # есть ли stash'ы
 ```
 
-#### 2d. GSD-контекст (если есть `.planning/`)
+#### 2d. GSD-контекст (dual-detection v1/v2)
 
-Если `<project_root>/.planning/` существует — это проект с GSD. Прочитай:
-- `.planning/STATE.md` — текущий milestone, текущая фаза, статус
-- `.planning/ROADMAP.md` (если есть) — список фаз с галочками
-- `.planning/M<N>/PHASE-<N>/STATUS.md` (если есть) — детальный статус активной фазы
-- Найди папки `M*/PHASE-*/` — посчитай completed vs pending
+Сначала определи версию:
+- `<project_root>/.planning/` → **GSD v1**
+- `<project_root>/.gsd/` → **GSD v2**
+- Оба → используй `gsd_version` из passport frontmatter; если нет — спроси.
+- Ничего нет → пропусти секцию.
 
-Это эквивалент `/gsd-progress` — встроено сюда, чтобы не дёргать вторую команду.
+**Если GSD v1 (`.planning/`)** — прочитай в этом порядке (приоритет ↓):
+
+1. **`.planning/STATE.md`** — главное. Из него: текущий milestone, position (phase/step), последние решения, blockers.
+2. **`.planning/HANDOFF.json`** (если существует) — самый свежий snapshot от `/gsd-pause-work`. Если его mtime > чем у последней mm-сессии — приоритет HANDOFF.
+3. **`.planning/ROADMAP.md`** — список фаз с `[x]/[~]/[ ]`. Покажи позицию: фаза X из Y, прогресс milestone'а.
+4. **`.planning/phases/<NN-current>/CONTEXT.md`** (если есть текущая фаза) — preferences и решения этой фазы. Это критично — покажет что мы решали в текущей фазе.
+5. **`.planning/phases/<NN-current>/PLAN.md`** — что планировали. Извлеки список задач, посчитай completed/pending.
+6. **`.planning/phases/<NN-current>/SUMMARY.md`** (если фаза завершена) — итог.
+7. **`.planning/threads/`** (если есть) — активные темы для cross-session.
+
+**Если GSD v2 (`.gsd/`)**:
+
+1. **`.gsd/STATE.md`** (rendered dashboard от gsd CLI) — главное.
+2. **`.gsd/AGENTS.md`** — preferences для агентов (равно `CONTEXT.md` v1).
+3. **`.gsd/gsd.db`** (SQLite) — опционально, если есть `sqlite3` в PATH:
+   ```bash
+   sqlite3 .gsd/gsd.db "SELECT name, status FROM milestones WHERE active=1; SELECT name, status FROM slices WHERE milestone_id=(SELECT id FROM milestones WHERE active=1); SELECT title, status FROM tasks WHERE slice_id=(SELECT id FROM slices WHERE active=1) LIMIT 10;"
+   ```
+   Парси вывод. Если sqlite3 недоступен — пропусти, сводка будет беднее но не сломается.
+
+**Это эквивалент `/gsd-progress` плюс часть `/gsd-resume-work`** — встроено сюда, не нужно дёргать GSD-команды отдельно.
+
+**Не пиши в `.planning/*` или `.gsd/*`** — только читай (там file-lock'и и охраняющие хуки).
 
 #### 2e. mm-система (smoke check)
 
@@ -92,9 +114,13 @@ git stash list 2>/dev/null      # есть ли stash'ы
 <1-3 строки из dashboard.md «Сейчас» + если есть текущая GSD-фаза — она>
 
 <Если GSD:>
-🎯 GSD: M<N> «<milestone_title>», фаза <X>/<Y> — «<phase_title>»
+🎯 GSD <v1|v2>: M<N> «<milestone_title>», фаза <X>/<Y> — «<phase_title>»
    Статус: <X задач completed, Y pending, Z blocked>
-   Следующее: <next phase title или "execute current">
+   Текущая фаза: <статус из STATE.md>
+   <Если есть HANDOFF.json свежее последней сессии:>
+   📌 HANDOFF (от /gsd-pause-work, <date>): <первый параграф what_next>
+   Решения текущей фазы (из CONTEXT.md): <топ-2 пункта>
+   Следующее: <next phase title или "execute current" или "verify">
 
 📝 Последняя сессия (<date>)
    Тема: <тема из имени файла>
