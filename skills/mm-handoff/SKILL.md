@@ -1,7 +1,7 @@
 ---
 name: mm-handoff
-version: 0.3.0
-description: Генерирует handoff.md — компактную сводку для нового чата claude.ai когда контекст текущего заполнился. Включает выжимку последних сессий, текущее состояние, открытые вопросы, и (если есть GSD) — current phase + last 3 SUMMARY.md. Use when user says "контекст заполнен", "новый чат", "handoff", "сводка для нового чата", "/mm-handoff", "пора закругляться, готовь следующий чат". НЕ путать с mm-save-session — этот про подготовку СЛЕДУЮЩЕГО чата, save-session про закрытие текущего.
+version: 0.4.0
+description: Генерирует handoff.md — компактную сводку для нового чата claude.ai когда контекст текущего заполнился. Включает 15-категорийный Session Guide (вдохновлено context-mode), выжимку последних сессий, текущее состояние, открытые вопросы, и (если есть GSD) — current phase + last 3 SUMMARY.md. Use when user says "контекст заполнен", "новый чат", "handoff", "сводка для нового чата", "/mm-handoff", "пора закругляться, готовь следующий чат". НЕ путать с mm-save-session — этот про подготовку СЛЕДУЮЩЕГО чата, save-session про закрытие текущего.
 ---
 
 # mm-handoff — Snapshot for Next claude.ai Chat
@@ -70,6 +70,14 @@ git branch --show-current
 
 Это станет новым блоком в handoff.md (см. ниже формат).
 
+### Шаг 5.6. Если установлен context-mode — подсоси Session Guide
+
+Опционально (улучшает handoff если плагин стоит):
+- Проверь существование `~/.claude/plugins/marketplaces/context-mode/` — это значит у юзера установлен плагин.
+- Если да — context-mode уже хранит структурированные события сессии в SQLite (`~/.claude/context-mode/sessions/`). Из этих событий можно извлечь топ-15 категорий (file/rule/prompt/decision/error/task/git/env/skill/subagent/intent/data/role/cwd/mcp).
+- Если можешь прочитать sqlite3 — извлеки. Иначе — **дай юзеру подсказку** в финале: «У тебя стоит context-mode. Для расширенного handoff запусти отдельно `ctx_insight` MCP-tool и скопируй результат вручную в handoff.md».
+- НЕ блокируй handoff если context-mode не установлен — это бонус.
+
 ### Шаг 6. Сгенерируй handoff.md
 
 Сохрани в `<obsidian_projects>/<name>/handoff.md` (перезаписать если есть). Формат:
@@ -93,6 +101,31 @@ sessions_summarized: <N>
 
 Ветка: `<branch>` | Несохранённые изменения: <N файлов / нет>
 Последний коммит: `<hash> <date> <subject>`
+
+<!-- Structured snapshot — 15 категорий вдохновлено context-mode Session Guide -->
+## Структурированный snapshot
+
+> Краткая сводка по 15 семантическим категориям. Заполняй ТОЛЬКО непустые — пропускай пустые. Источники: текущая сессия, dashboard, последние сессии, git, GSD, context-mode SQLite (если есть).
+
+| Категория | Содержание |
+|---|---|
+| **Files (P1)** | Файлы которые трогали / читали (топ-5 по частоте) |
+| **Rules (P2)** | Активные правила: passport секция 8 (топ-3), CLAUDE.md mm-system, karpathy-guidelines |
+| **Decisions (P2)** | Решения принятые за период (топ-5, overflow → 3) |
+| **Tasks** | В работе сейчас + WIP из dashboard «Сейчас» |
+| **Errors** | Незакрытые ошибки / проблемы |
+| **Git** | Branch, last commit, uncommitted N |
+| **Env** | OS, runtime versions, ENV vars (только имена!) |
+| **Skills** | mm-* + другие skills которые активно использовались |
+| **Subagents** | Делегированная работа (Agent tool calls) |
+| **Intent** | Режим сессии: feature / bugfix / research / refactor / setup |
+| **Data** | Внешние источники данных, API, файлы данных |
+| **Role** | Persona / behavioral directives если задавались |
+| **CWD** | Рабочая директория (абсолютный путь) |
+| **MCP** | MCP-tools которые активно дёргали (топ-3) |
+| **Prompt patterns** | Сохранённые удачные промпты из `<obsidian>/Projects/<name>/prompts/` |
+
+Категории P1/P2 — приоритет для compactor'а (P1 сохраняем всегда, P2 — обрезаем при overflow).
 
 <!-- GSD блок: вставляй ТОЛЬКО если в проекте есть .planning/ или .gsd/ -->
 ## GSD контекст (если применимо)

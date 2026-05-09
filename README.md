@@ -141,21 +141,40 @@ copy config/mm-config.local.example.json config/mm-config.local.json
 
 ---
 
-# mm vs Anthropic Memory vs GSD — что какое решает
+# mm vs Anthropic Memory vs GSD vs context-mode — что какое решает
 
-В claude.ai Project три места для контекста (см. скриншот: Memory / Instructions / Files), плюс отдельная экосистема GSD. Чтобы не путаться:
+Четыре слоя контекста, каждый решает своё. Не пересекаются, дополняют друг друга.
 
 | Слой | Кто заполняет | Что хранит | Когда обновляется |
 |---|---|---|---|
-| **Anthropic Memory** | Anthropic auto | Долгосрочные факты о тебе и проекте, выводы | Сама учится из чатов |
+| **Anthropic Memory** | Anthropic auto (в claude.ai Project) | Долгосрочные факты о тебе и проекте, выводы | Сама учится из чатов |
 | **Project Instructions** | `/mm rules` → копипаст | Правила: как Claude должен работать в этом Project | Один раз при создании Project + после крупных изменений паспорта |
 | **Project Knowledge (Files)** | `/mm new` + `/mm next` → копипаст из Obsidian | `passport.md` (структура) + `handoff.md` (свежий контекст) | passport — раз в неделю; handoff — перед каждым новым чатом |
-| **GSD** (`.planning/`) | `/gsd-*` команды | Пофазовое планирование внутри milestone | Активно во время разработки крупной фичи |
+| **GSD** (`.planning/` или `.gsd/`) | `/gsd-*` команды | Пофазовое планирование внутри milestone | Активно во время разработки крупной фичи |
+| **context-mode** (MCP, плагин) | Хуки автоматом → SQLite в `~/.claude/context-mode/` | События сессии по 15 категориям, restore после `/compact` и рестарта | Постоянно сама |
+| **karpathy-guidelines** (плагин) | — (поведенческие правила) | 4 принципа кодинга | Применяются при каждом написании кода |
 
 **Правила использования:**
 - **Маленький / средний проект** — только mm. GSD оверкилл.
 - **Крупная фича** — mm для chat ↔ code моста + GSD для разбиения на фазы. Не конфликтуют.
+- **Любая длительная сессия** — context-mode работает сам в фоне (если установлен), сильно экономит токены.
 - **Anthropic Memory** — оставь как есть, она работает сама. Не пытайся ей «помогать» — это не наша зона.
+
+## Что устанавливать дополнительно (рекомендованные плагины)
+
+```powershell
+# Karpathy 4 принципа (применяются всегда, через global CLAUDE.md тоже продублировано)
+claude plugin marketplace add forrestchang/andrej-karpathy-skills
+claude plugin install andrej-karpathy-skills@karpathy-skills
+
+# context-mode — экономия контекстного окна, persistent memory сессий, sandbox для кода
+claude plugin marketplace add mksglu/context-mode
+claude plugin install context-mode@context-mode
+```
+
+После установки `/mm check` подтвердит что всё подцепилось.
+
+**context-mode хуки и GSD хуки сосуществуют** — context-mode подключает свои хуки через plugin manifest, GSD — через `~/.claude/settings.json`. Claude Code запускает оба набора параллельно для одного события. Никаких ручных правок не требуется.
 
 ---
 
