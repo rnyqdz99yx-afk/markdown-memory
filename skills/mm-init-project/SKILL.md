@@ -1,7 +1,7 @@
 ---
 name: mm-init-project
-version: 0.2.0
-description: Инициализирует или обновляет проект для mm-системы — создаёт passport.md в корне, копию в Obsidian, dashboard.md, project-instructions.md для claude.ai. Use when user says "оформи проект", "сделай паспорт", "init project", "/mm-init", "/mm-init-project", "обнови паспорт", "регистрирую проект". Работает на пустой папке (новый проект) и на существующем коде с любыми .md файлами (auto-discovery + dry-run preview перед записью). Включает secret-grep и детектор рассинхрона между копиями паспорта.
+version: 0.3.0
+description: Инициализирует или обновляет проект для mm-системы — создаёт passport.md в корне, копию в Obsidian, dashboard.md, project-instructions.md для claude.ai. Use when user says "оформи проект", "сделай паспорт", "init project", "/mm-init", "/mm-init-project", "обнови паспорт", "регистрирую проект". Работает на пустой папке (новый проект) и на существующем коде с любыми .md файлами (auto-discovery + dry-run preview перед записью). Включает auto-detect стека (~150 фреймворков), dual-detection GSD v1 (.planning/) и v2 (.gsd/), import scope/requirements из GSD-артефактов, secret-grep, детектор рассинхрона между копиями паспорта.
 ---
 
 # mm-init-project — Project Bootstrap & Refresh (safe edition)
@@ -90,12 +90,80 @@ description: Инициализирует или обновляет проект
 
 Прочитай **первые 50 строк** каждого найденного файла — для понимания.
 
-### 1c. Маркеры стека
+### 1c. Маркеры стека (auto-detection)
 
-Прочитай если есть:
-- `package.json`, `pyproject.toml`, `requirements.txt`, `go.mod`, `Cargo.toml`, `pom.xml`
-- `Dockerfile`, `docker-compose.yml`, `railway.json`, `vercel.json`
+**Manifest-файлы** — прочитай если есть:
+- `package.json`, `pyproject.toml`, `requirements.txt`, `go.mod`, `Cargo.toml`, `pom.xml`, `composer.json`, `Gemfile`, `mix.exs`, `pubspec.yaml`
+- `Dockerfile`, `docker-compose.yml`, `railway.json`, `vercel.json`, `fly.toml`, `Procfile`
 - `.env.example`, `.env.template` (не `.env`!)
+- `tsconfig.json`, `next.config.*`, `vite.config.*`, `astro.config.*`, `nuxt.config.*`, `svelte.config.*`, `remix.config.*`
+- `.python-version`, `.nvmrc`, `.tool-versions`, `runtime.txt`
+
+**Auto-detection: пакет → стек** (по подстроке в зависимостях):
+
+| Если в зависимостях | Тип | Фреймворк | Категория |
+|---|---|---|---|
+| `aiogram`, `python-telegram-bot`, `telethon`, `pyrogram`, `telegraf`, `grammy` | bot | по имени | tg-bot |
+| `discord.py`, `discord.js`, `discordeno` | bot | по имени | discord-bot |
+| `fastapi`, `flask`, `django`, `starlette`, `litestar`, `quart`, `sanic`, `bottle`, `pyramid` | web | по имени | python-web |
+| `express`, `koa`, `hapi`, `fastify`, `nest`, `polka`, `hono`, `elysia` | web | по имени | node-web |
+| `next`, `nuxt`, `astro`, `remix`, `sveltekit`, `gatsby`, `solid-start`, `qwik` | web | по имени | meta-framework |
+| `react`, `vue`, `svelte`, `solid-js`, `preact`, `lit`, `htmx` | web | по имени | spa-frontend |
+| `gin`, `echo`, `fiber`, `chi`, `gorilla/mux`, `huma` | web | по имени | go-web |
+| `actix-web`, `axum`, `rocket`, `warp`, `tide`, `salvo` | web | по имени | rust-web |
+| `rails`, `sinatra`, `hanami`, `roda` | web | по имени | ruby-web |
+| `phoenix`, `plug` | web | по имени | elixir-web |
+| `laravel`, `symfony`, `slim` | web | по имени | php-web |
+| `sqlalchemy`, `sqlmodel`, `alembic`, `tortoise-orm`, `peewee`, `pydantic` | — | — | python-db |
+| `prisma`, `drizzle`, `kysely`, `typeorm`, `sequelize`, `mongoose`, `mikro-orm` | — | — | node-db |
+| `gorm`, `ent`, `sqlx`, `bun`, `pgx` | — | — | go-db |
+| `diesel`, `sea-orm`, `sqlx` (rust) | — | — | rust-db |
+| `pytest`, `unittest`, `nose2`, `tox` | — | тесты Python | testing |
+| `vitest`, `jest`, `mocha`, `playwright`, `cypress`, `ava`, `tap` | — | тесты JS | testing |
+| `cargo test` (default), `nextest` | — | тесты Rust | testing |
+| `loguru`, `structlog`, `winston`, `pino`, `zap`, `tracing`, `slog` | — | логирование | observability |
+| `pydantic`, `zod`, `joi`, `yup`, `ajv`, `valibot`, `arktype` | — | валидация | validation |
+| `openai`, `anthropic`, `litellm`, `langchain`, `llama-index`, `instructor` | — | — | ai-llm |
+| `huggingface`, `transformers`, `torch`, `tensorflow`, `jax`, `keras` | — | — | ai-ml |
+| `pandas`, `polars`, `numpy`, `scipy`, `dask` | — | — | data |
+| `dlt`, `airflow`, `prefect`, `dagster`, `kafka-python`, `aiokafka` | — | — | pipelines |
+| `redis`, `aioredis`, `kombu`, `celery`, `rq`, `bullmq` | — | — | queue/cache |
+| `scrapy`, `playwright`, `puppeteer`, `selenium`, `httpx`, `aiohttp` | — | — | scraping/http |
+| `tauri`, `electron`, `wails` | — | — | desktop |
+
+**Файловые маркеры (если manifest неоднозначен):**
+- `*.tsx` / `*.jsx` → React
+- `*.vue` → Vue
+- `*.svelte` → Svelte
+- `*.astro` → Astro
+- `app/page.tsx` → Next.js App Router
+- `pages/*.tsx` → Next.js Pages Router
+- `wrangler.toml` → Cloudflare Workers
+- `serverless.yml` → Serverless Framework
+- `terraform/`, `*.tf` → Terraform
+- `helm/`, `Chart.yaml` → Kubernetes Helm
+
+**Combo-recognition (комплекты):**
+- React + TypeScript + Tailwind + shadcn → пометить «modern react stack»
+- FastAPI + Pydantic + sqlmodel + pytest → пометить «modern python web»
+- aiogram + sqlmodel + loguru → пометить «louise's bot stack» (твой default из bot_defaults)
+
+**Приоритет определения типа** (когда несколько матчей):
+1. tg-bot / discord-bot (если есть бот-фреймворк) — `bot`
+2. meta-framework (Next/Nuxt/Astro/Remix) — `web`
+3. python-web / node-web / go-web / rust-web — `web`
+4. spa-frontend без backend — `web` (frontend-only)
+5. ai-ml / ai-llm + entry point — `script` или `service`
+6. data / pipelines — `script`
+7. desktop — `desktop`
+8. lib (если в `pyproject.toml` `[project]` без entry point ИЛИ в `package.json` `main` без `bin`) — `lib`
+9. иначе — `script`
+
+**Версии:**
+- Питон: из `.python-version` или `pyproject.toml` `requires-python`
+- Node: из `.nvmrc`, `engines.node` в package.json
+- Go: из `go.mod` строка `go X.Y`
+- Rust: из `rust-toolchain.toml` или edition в `Cargo.toml`
 
 ### 1d. Git-контекст
 
@@ -106,11 +174,37 @@ git branch --show-current
 git log --oneline -10
 ```
 
-### 1e. Системы которые могут конфликтовать
+### 1e. Системы которые могут конфликтовать (dual-detection GSD)
 
-- `.planning/` → проект использует GSD. Не конфликтуй, дополняй (паспорт mm = высокоуровневый, GSD-документы = пофазовые).
-- `CLAUDE.md` → читай, оценивай размер: маленький (< 30 строк) — добавим секцию; большой — спросим перед добавлением.
-- `passport.md` (точное совпадение) → режим update, см. фазу 3.
+**GSD detection** (определи версию):
+- `<project_root>/.planning/` существует → **GSD v1**. В passport frontmatter `gsd_version: v1`.
+- `<project_root>/.gsd/` существует → **GSD v2**. В passport frontmatter `gsd_version: v2`.
+- Оба → **смешанный** (редкость, после миграции). Спроси: какой считать активным?
+- Ни одного → `gsd_version: none`.
+
+**Если GSD есть — попробуй импортировать scope/requirements** (чтобы не дублировать):
+
+GSD v1 (`.planning/`):
+- `PROJECT.md` → vision, audience, goals → секция 1 (Назначение) + секция 3 (Архитектура краткая)
+- `REQUIREMENTS.md` → REQ-001..N → можно вытащить топ-5 в секцию 4 как «функциональные требования» (опционально)
+- `ROADMAP.md` → phases, статусы → секция 9 паспорта строка `Текущий milestone / phase: <M1 / phase 03 — <title>>`
+- `STATE.md` → current phase / position → секция 10 «В работе сейчас»
+- `codebase/STACK.md`, `codebase/ARCHITECTURE.md`, `codebase/CONVENTIONS.md`, `codebase/CONCERNS.md` → если есть, переносим в секции 2, 3, 7, 10 паспорта (НЕ дублируя — кратко + ссылка `см. .planning/codebase/STACK.md`)
+
+GSD v2 (`.gsd/`):
+- `gsd.db` (SQLite) → если можешь прочитать через sqlite3 CLI/Python — извлеки текущий milestone/slice/task; иначе пропусти
+- `STATE.md` (rendered dashboard) → парсинг как у v1
+- `AGENTS.md` → preferences для агентов → ссылка в секции 7 паспорта
+
+**Важное правило про дубликацию:**
+- Если в `.planning/PROJECT.md` уже есть подробное описание проекта — в секции 1 паспорта пиши **краткое summary + ссылку** (`см. .planning/PROJECT.md`), не копируй целиком.
+- В секции 9 явно укажи source-of-truth: `Source-of-truth для scope/requirements: .planning/PROJECT.md`. Это нужно чтобы будущий читатель не запутался какой документ актуальный.
+
+**Никогда не пиши в `.planning/*` или `.gsd/*` напрямую** — там file-lock'и, hook'и-охранники GSD. Только читать.
+
+**`CLAUDE.md`** → читай, оценивай размер: маленький (< 30 строк) — добавим секцию; большой — спросим перед добавлением.
+
+**`passport.md`** (точное совпадение) → режим update, см. фазу 3.
 
 ### 1f. Sync-check между копиями паспорта
 
@@ -130,7 +224,7 @@ git log --oneline -10
   ```
 - Запомни выбор для фазы 4 (write).
 
-### 1f. Вывод фазы Discovery (покажи пользователю)
+### 1g. Вывод фазы Discovery (покажи пользователю)
 
 ```
 🔍 Discovery: <project_name>
@@ -147,14 +241,22 @@ Git: <branch>, <N> коммитов, remote: <url или local>
   • README.md (описание)
   • docs/architecture.md (архитектура)
   • NOTES.md (заметки)
-  • .planning/ (GSD: 3 фазы)
   (используются ТОЛЬКО для чтения — не будут изменены)
 
-Стек определён:
-  • Язык: Python 3.12
-  • Фреймворк: aiogram 3.x
-  • DB: SQLite
-  • Тип: bot
+GSD detection:
+  • Версия: <none | v1 (.planning/) | v2 (.gsd/)>
+  • PROJECT.md: <есть, 240 строк — могу импортировать vision и audience в секции 1, 3>
+  • REQUIREMENTS.md: <есть, REQ-001..REQ-014 — топ-5 в секцию 4?>
+  • Текущий milestone: <M1 «MVP», phase 03/07 «add /stats command» (in-progress)>
+  • codebase/: <STACK.md, ARCHITECTURE.md, CONVENTIONS.md — могу подсосать в секции 2, 3, 7>
+
+Стек определён (auto-detection):
+  • Язык: Python 3.12 (из .python-version)
+  • Фреймворк: aiogram 3.x (из pyproject.toml)
+  • DB: SQLite через sqlmodel
+  • Тесты: pytest
+  • Логирование: loguru
+  • Тип: bot (combo: «louise's bot stack»)
 
 Существующий CLAUDE.md: <нет / <N> строк, добавлю секцию mm-system / большой — спрошу>
 ```
@@ -179,6 +281,9 @@ Git: <branch>, <N> коммитов, remote: <url или local>
 
 5. **Если в Obsidian уже есть `<obsidian_projects>/<name>/`**:
    `Папка в Obsidian уже есть (<N файлов). Update (y) / Создать <name>-2 (n) / Отмена (c)?`
+
+6. **Если есть GSD (`.planning/PROJECT.md` или `.gsd/`) и режим init**:
+   `Найден <PROJECT.md / .gsd/>. Импортировать описание/scope в секции 1, 3 паспорта (y) / только сослаться, не дублировать (n) / отмена (c)? Дефолт n — паспорт ссылается, не дублирует.`
 
 Если пользователь говорит «решай сам» — выбирай разумный дефолт, отмечай в финальном отчёте `<assumed: ...>`.
 

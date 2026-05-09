@@ -1,7 +1,7 @@
 ---
 name: mm-handoff
-version: 0.2.0
-description: Генерирует handoff.md — компактную сводку для нового чата claude.ai когда контекст текущего заполнился. Включает выжимку последних сессий, текущее состояние, открытые вопросы. Use when user says "контекст заполнен", "новый чат", "handoff", "сводка для нового чата", "/mm-handoff", "пора закругляться, готовь следующий чат". НЕ путать с mm-save-session — этот про подготовку СЛЕДУЮЩЕГО чата, save-session про закрытие текущего.
+version: 0.3.0
+description: Генерирует handoff.md — компактную сводку для нового чата claude.ai когда контекст текущего заполнился. Включает выжимку последних сессий, текущее состояние, открытые вопросы, и (если есть GSD) — current phase + last 3 SUMMARY.md. Use when user says "контекст заполнен", "новый чат", "handoff", "сводка для нового чата", "/mm-handoff", "пора закругляться, готовь следующий чат". НЕ путать с mm-save-session — этот про подготовку СЛЕДУЮЩЕГО чата, save-session про закрытие текущего.
 ---
 
 # mm-handoff — Snapshot for Next claude.ai Chat
@@ -59,6 +59,17 @@ git branch --show-current
 
 «Текущее состояние» + «Открытые вопросы» + «Известные баги».
 
+### Шаг 5.5. Собери GSD context (если применимо)
+
+Если в `<project_root>/.planning/` или `<project_root>/.gsd/`:
+- Из `STATE.md` — current milestone + current phase + status
+- Из `ROADMAP.md` — позиция (фаза X из Y)
+- Из `phases/<NN-current>/CONTEXT.md` — топ-3 решения текущей фазы
+- Из последних 3 `phases/<NN>/SUMMARY.md` (по mtime) — что было завершено
+- Из `HANDOFF.json` (v1) — last position от `/gsd-pause-work`
+
+Это станет новым блоком в handoff.md (см. ниже формат).
+
 ### Шаг 6. Сгенерируй handoff.md
 
 Сохрани в `<obsidian_projects>/<name>/handoff.md` (перезаписать если есть). Формат:
@@ -82,6 +93,21 @@ sessions_summarized: <N>
 
 Ветка: `<branch>` | Несохранённые изменения: <N файлов / нет>
 Последний коммит: `<hash> <date> <subject>`
+
+<!-- GSD блок: вставляй ТОЛЬКО если в проекте есть .planning/ или .gsd/ -->
+## GSD контекст (если применимо)
+
+- **Версия**: <v1 .planning/ | v2 .gsd/>
+- **Milestone**: M<N> «<title>», прогресс <X>/<Y> фаз
+- **Текущая фаза**: <NN-current> «<title>» — статус <draft | discussed | planned | in-progress | verified | complete>
+- **Последние завершённые фазы** (топ-3 по mtime SUMMARY.md):
+  - <NN-X> «<title>»: <одна строка из SUMMARY>
+  - <NN-Y> «<title>»: <одна строка>
+  - <NN-Z> «<title>»: <одна строка>
+- **Решения текущей фазы** (из CONTEXT.md):
+  - <решение 1>
+  - <решение 2>
+- **HANDOFF.json** (если есть и свежее): <position + what_next в одной строке>
 
 ## Что сделано за период
 
