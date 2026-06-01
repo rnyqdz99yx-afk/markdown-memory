@@ -1,6 +1,6 @@
 ---
 name: mm-init-project
-version: 0.4.0
+version: 0.5.0
 description: Инициализирует или обновляет проект для mm-системы — создаёт passport.md в корне, копию в Obsidian, dashboard.md, handoff.md (скелет), project-instructions.md для claude.ai. Use when user says "оформи проект", "сделай паспорт", "init project", "/mm-init", "/mm-init-project", "обнови паспорт", "регистрирую проект". Работает на пустой папке (новый проект) и на существующем коде с любыми .md файлами (auto-discovery + dry-run preview перед записью). Включает auto-detect стека (~150 фреймворков), dual-detection GSD v1 (.planning/) и v2 (.gsd/), import scope/requirements из GSD-артефактов, secret-grep, детектор рассинхрона между копиями паспорта.
 ---
 
@@ -374,7 +374,20 @@ project-instructions: возьми `<skills_repo>/templates/project-instructions
 - Перед новым чатом claude.ai: `/mm-handoff`
 ```
 
-Если CLAUDE.md нет — создай минимальный с этой секцией + первой строкой `# <name>`.
+**Если `gsd_version != none`** (GSD задетектен в фазе 1e) — добавь в эту же секцию ещё подблок (подставь версию и путь STATE):
+
+```markdown
+
+### GSD в этом проекте
+
+Проект использует **GSD <v1 `.planning/` | v2 `.gsd/`>** — пофазовое планирование. Правило маршрутизации работы (триггер по сложности):
+- **Нетривиальная фича / многошаговая задача** → начни с `/gsd-discuss-phase` или `/gsd-plan-phase`, затем `/gsd-execute-phase`. **Не пиши feature-код ad-hoc в обход фаз.**
+- **Мелочь / однострочник / точечная правка** → `/gsd-fast` (или `/gsd-quick`), либо просто сделай — без церемонии.
+- Перед изменениями сверься с current phase в `<.planning/STATE.md | .gsd/STATE.md>`.
+- Не редактируй `.planning/*` / `.gsd/*` вручную — там file-lock'и и хуки; только через `/gsd-*`.
+```
+
+Если CLAUDE.md нет — создай минимальный с секцией `## mm-system` (+ GSD-подблок, если применимо) + первой строкой `# <name>`.
 
 ### 4.4. Запиши всё
 
