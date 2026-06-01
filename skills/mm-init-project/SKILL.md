@@ -1,6 +1,6 @@
 ---
 name: mm-init-project
-version: 0.5.0
+version: 0.5.1
 description: Инициализирует или обновляет проект для mm-системы — создаёт passport.md в корне, копию в Obsidian, dashboard.md, handoff.md (скелет), project-instructions.md для claude.ai. Use when user says "оформи проект", "сделай паспорт", "init project", "/mm-init", "/mm-init-project", "обнови паспорт", "регистрирую проект". Работает на пустой папке (новый проект) и на существующем коде с любыми .md файлами (auto-discovery + dry-run preview перед записью). Включает auto-detect стека (~150 фреймворков), dual-detection GSD v1 (.planning/) и v2 (.gsd/), import scope/requirements из GSD-артефактов, secret-grep, детектор рассинхрона между копиями паспорта.
 ---
 
@@ -385,6 +385,8 @@ project-instructions: возьми `<skills_repo>/templates/project-instructions
 - **Мелочь / однострочник / точечная правка** → `/gsd-fast` (или `/gsd-quick`), либо просто сделай — без церемонии.
 - Перед изменениями сверься с current phase в `<.planning/STATE.md | .gsd/STATE.md>`.
 - Не редактируй `.planning/*` / `.gsd/*` вручную — там file-lock'и и хуки; только через `/gsd-*`.
+
+**Ответы на вопросы с вариантами** (discuss-phase и любые AskUserQuestion, включая «Type something»): ответ «вариант N» + свободный текст = возьми вариант N за основу и **вживи дополнение** пользователя (оно уточняет/переопределяет часть N). Не выбирай просто N, игнорируя текст, и не выбрасывай N. Если дополнение противоречит варианту — переспроси одной строкой.
 ```
 
 Если CLAUDE.md нет — создай минимальный с секцией `## mm-system` (+ GSD-подблок, если применимо) + первой строкой `# <name>`.

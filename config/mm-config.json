@@ -1,7 +1,7 @@
 {
   "_doc": "См. docs/CONFIG-LOADING.md для алгоритма загрузки. Машинно-специфичные overrides — в config/mm-config.local.json (gitignored).",
   "_version_note": "version — единый источник версии mm-системы (repo-wide release). passport.mm_version проставляется отсюда при /mm-init-project. Per-skill version: в SKILL.md — гранулярная история конкретного скилла, это не рассинхрон.",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "namespace": "mm",
   "default_language": "ru",
   "user": {
@@ -41,11 +41,6 @@
     "default_remote": "origin",
     "default_branch": "main",
     "commit_style": "conventional"
-  },
-  "inbox_bot": {
-    "url": null,
-    "enabled": false,
-    "fallback_dir": "C:\\Users\\louise\\Documents\\Obsidian Vault\\Claude\\Inbox"
   },
   "tg_bridge": {
     "enabled": false,
