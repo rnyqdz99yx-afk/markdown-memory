@@ -15,10 +15,11 @@
 
 ```
 louise-skills/  (этот репо — source of truth)
-├── skills/                          (8 mm-* skills, junction'ятся в ~/.claude/skills/)
+├── skills/                          (9 mm-* skills, junction'ятся в ~/.claude/skills/)
 │   ├── mm/                          ← диспетчер (/mm new, /mm save, /mm bridge, ...)
 │   ├── mm-init-project/             ← создать/обновить паспорт + Obsidian + claude.ai instructions
 │   ├── mm-resume/                   ← «где мы» — passport + last session + git + GSD
+│   ├── mm-projects/                 ← обзор всех проектов одним экраном
 │   ├── mm-bridge/                   ← промпт-мост в файл (claude.ai → PowerShell)
 │   ├── mm-handoff/                  ← сводка для нового чата claude.ai (15-категорийная)
 │   ├── mm-save-session/             ← закрыть сессию, лог в Obsidian
@@ -117,6 +118,7 @@ copy config/mm-config.local.example.json config/mm-config.local.json
 | `/mm` | — | Список всех команд |
 | `/mm new` | `/mm-init-project` | Инициализация / обновление проекта |
 | `/mm resume` | `/mm-resume` | «Где мы» — passport + last session + git + GSD-фаза |
+| `/mm projects` | `/mm-projects` | Обзор всех проектов одним экраном |
 | `/mm prompt` | `/mm-bridge` | Промпт-мост в файл для PowerShell-Клода |
 | `/mm next` | `/mm-handoff` | Контекст в claude.ai заполнен — сводка для нового чата |
 | `/mm save` | `/mm-save-session` | Конец сессии — лог в Obsidian |
