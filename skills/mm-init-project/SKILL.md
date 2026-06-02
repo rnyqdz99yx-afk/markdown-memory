@@ -414,27 +414,7 @@ project-instructions: возьми `<skills_repo>/templates/project-instructions
 
 **Secret-grep (критично — passport едет в claude.ai):**
 
-Прогони passport.md через regex-поиск потенциальных секретов. Список регэкспов вдохновлён context-mode + расширен:
-
-| Pattern | Что ловит |
-|---|---|
-| `(?i)(authorization\|api[_-]?key\|secret\|password\|token\|bearer\|cookie\|signature\|private[_-]?key)[\s:=]+\S{8,}` | Явные ключи (любая раскладка имени поля) |
-| `[A-Za-z0-9_\-]{32,}` где есть и буквы и цифры | API tokens, hash'и (≥32 символа) |
-| `[0-9]{8,12}:[A-Za-z0-9_\-]{30,}` | Telegram bot tokens (формат `bot_id:token`) |
-| `sk-[A-Za-z0-9]{20,}` | OpenAI / Anthropic ключи |
-| `sk-ant-[A-Za-z0-9_\-]{40,}` | Anthropic API keys (специфический формат) |
-| `ghp_[A-Za-z0-9]{30,}` / `gho_` / `ghs_` / `ghu_` / `ghr_` | GitHub tokens (все типы) |
-| `xox[baprs]-[A-Za-z0-9-]{10,}` | Slack tokens |
-| `AKIA[0-9A-Z]{16}` | AWS access key ID |
-| `[A-Za-z0-9/+]{40}` рядом с `aws_secret` | AWS secret access key |
-| `AIza[0-9A-Za-z_\-]{35}` | Google API keys |
-| `ya29\.[A-Za-z0-9_\-]+` | Google OAuth tokens |
-| `eyJ[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]{20,}` | JWT tokens |
-| `-----BEGIN (RSA \|EC \|OPENSSH \|DSA \|PGP )?PRIVATE KEY-----` | Inline private keys |
-| `https?://[^\s]*:[^@\s/]+@` | URL'ы с inline credentials |
-| `mongodb(\+srv)?://[^\s/]+:[^@\s/]+@` | MongoDB connection strings |
-| `postgres(ql)?://[^\s/]+:[^@\s/]+@` | Postgres connection strings |
-| `redis://[^\s/]*:[^@\s/]+@` | Redis с password |
+Прогони passport.md через regex-поиск потенциальных секретов. **Паттерны — в едином `<repo>/docs/SECRET-PATTERNS.md`** (Класс A — высокоточные, Класс B — широкие/warn-only). Не дублируй их здесь — это source of truth.
 
 Если что-то нашёл — **не молчи, не удаляй сам**. Покажи:
 ```
