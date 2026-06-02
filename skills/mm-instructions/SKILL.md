@@ -1,6 +1,6 @@
 ---
 name: mm-instructions
-version: 0.5.0
+version: 0.5.1
 description: Генерирует текст для claude.ai → Project → Instructions из шаблона + персонализирует под текущий проект. Кладёт результат в Obsidian для копипаста. Use when user says "сделай инструкции для проекта", "обнови project instructions", "/mm-instructions", "перегенери инструкции", "что вставить в Project Instructions". Без аргументов = универсальная версия; с проектом = подставляет имя.
 ---
 
@@ -35,7 +35,7 @@ description: Генерирует текст для claude.ai → Project → In
 
 Запуск без `passport.md` или с флагом «универсальная» / «общая». Скилл:
 1. Берёт шаблон as-is.
-2. `<PROJECT_NAME>` заменяет на `<универсальный — определяется в чате>`.
+2. `<PROJECT_NAME>` заменяет на `<универсальный — определяется в чате>`; `<USER_NAME>` — на `config.user.name`.
 3. Удаляет секцию «Особенности этого проекта» **и GSD-блок** (универсальной комнате конкретный GSD неизвестен).
 4. Сохраняет в `<obsidian_bridge>/project-instructions-universal.md`.
 
@@ -55,6 +55,8 @@ description: Генерирует текст для claude.ai → Project → In
 ### Шаг 3. Подстановки (режим A)
 
 Замени все вхождения `<PROJECT_NAME>` на реальное имя.
+
+Замени все вхождения `<USER_NAME>` на `config.user.name` (из mm-config, с учётом local-оверлея). Если поля нет — оставь нейтральное «разработчика».
 
 **GSD-блок** (между `<!-- GSD-BLOCK-START ... -->` и `<!-- GSD-BLOCK-END -->`):
 - Если `gsd_version != none`: замени `<GSD_VERSION>` на `v1 (.planning/)` или `v2 (.gsd/)`, `<GSD_CURRENT_PHASE>` — на текущую фазу из секции 9 паспорта (или `см. STATE.md`, если не указана). Сами маркеры-комментарии удали.

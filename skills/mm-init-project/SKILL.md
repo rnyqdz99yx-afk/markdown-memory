@@ -147,7 +147,7 @@ description: Инициализирует или обновляет проект
 **Combo-recognition (комплекты):**
 - React + TypeScript + Tailwind + shadcn → пометить «modern react stack»
 - FastAPI + Pydantic + sqlmodel + pytest → пометить «modern python web»
-- aiogram + sqlmodel + loguru → пометить «louise's bot stack» (твой default из bot_defaults)
+- aiogram + sqlmodel + loguru → пометить «default bot stack» (из bot_defaults конфига)
 
 **Приоритет определения типа** (когда несколько матчей):
 1. tg-bot / discord-bot (если есть бот-фреймворк) — `bot`
@@ -257,7 +257,7 @@ GSD detection:
   • DB: SQLite через sqlmodel
   • Тесты: pytest
   • Логирование: loguru
-  • Тип: bot (combo: «louise's bot stack»)
+  • Тип: bot (combo: «default bot stack»)
 
 Существующий CLAUDE.md: <нет / <N> строк, добавлю секцию mm-system / большой — спрошу>
 ```
@@ -338,7 +338,7 @@ Continue? (y / n / edit)
 - **Секции 1-7, 9** — из discovery (стек, архитектура, команды, конвенции из README, ENV из .env.example).
 - **Секция 8 «Контекст для промптов»**:
   - Если миграция из PROJECT_PASSPORT.md и там есть аналогичный раздел — перенеси.
-  - Иначе оставь шаблон + `<!-- TODO louise: заполни секцию 8 — это критично, читается каждым промптом -->`.
+  - Иначе оставь шаблон + `<!-- TODO: заполни секцию 8 — критично, читается каждым промптом -->`.
 - **Секция 10 «Текущее состояние»**:
   - Init: пустой шаблон.
   - Update (есть passport.md): сохрани существующий текст 1:1.

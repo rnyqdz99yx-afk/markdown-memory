@@ -1,6 +1,26 @@
 # louise-skills
 
-Личная mm-система для **louise**: связка `claude.ai` ↔ Claude Code в PowerShell ↔ Obsidian, через kacтомные skills `mm-*`.
+**mm-система** — набор кастомных skills `mm-*`, связывающих `claude.ai` (идеи) ↔ Claude Code в PowerShell (работа) ↔ Obsidian (общая память между чатами и сессиями). Изначально сделана под louise, но **рассчитана на любого пользователя** — настраивается под себя одной командой.
+
+## Быстрый старт (новый пользователь)
+
+```powershell
+# 1. Клонируй репо
+git clone https://github.com/mworldorg/louise-skills.git
+cd louise-skills
+
+# 2. Установи skills (junction'ы в ~/.claude/skills + env var MM_REPO_ROOT)
+powershell scripts/register-skills.ps1
+
+# 3. Перезапусти Claude Code, затем персонализируй под себя:
+/mm setup        # спросит имя, стек, путь к Obsidian vault → запишет в mm-config.local.json
+
+# 4. Проверь и заводи первый проект:
+/mm check        # самопроверка системы
+/mm new          # оформить паспорт проекта
+```
+
+Личные данные (имя, пути, стек) хранятся в `config/mm-config.local.json` (gitignored) — committed-файлы остаются generic-шаблоном. Подробный онбординг: [docs/GETTING-STARTED.md](docs/GETTING-STARTED.md).
 
 ## Зачем
 

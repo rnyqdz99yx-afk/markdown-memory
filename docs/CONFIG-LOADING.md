@@ -38,11 +38,11 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent $realPath)
 
 Если `<repoRoot>/config/mm-config.json` существует — используй. Stop.
 
-### Шаг 3. Fallback на стандартный путь
+### Шаг 3. Fallback (если шаги 1-2 не сработали)
 
-`C:\Users\louise\Desktop\louise-skills\config\mm-config.json` — **легаси-путь именно для исходной машины louise**. На других машинах сюда попадать не должны (их `MM_REPO_ROOT` указывает на их клон). Этот fallback существует только для случая «разово сломалась env var».
+Если `MM_REPO_ROOT` не задан и junction не разрезолвился — это нештатная ситуация (env var сбросилась). Надёжного «стандартного пути» на чужой машине нет, поэтому переходи к шагу 4 и попроси пользователя задать `MM_REPO_ROOT` / прогнать `register-skills.ps1`.
 
-Если есть — используй, и **предупреди**: `Use $env:MM_REPO_ROOT to make this portable.`
+> Прим.: на машине автора может существовать исторический путь-fallback — но в общем случае на него не полагайся, он не портативен.
 
 ### Шаг 4. Если ничего не нашлось
 
@@ -100,9 +100,7 @@ function load_mm_config():
             if real:
                 repo_root = parent(parent(real))
     if not repo_root or not exists("$repo_root/config/mm-config.json"):
-        repo_root = "C:\Users\louise\Desktop\louise-skills"  # legacy fallback
-    if not exists("$repo_root/config/mm-config.json"):
-        error("No mm-config.json found. Set MM_REPO_ROOT.")
+        error("No mm-config.json found. Set MM_REPO_ROOT or run scripts/register-skills.ps1.")
 
     config = read_json("$repo_root/config/mm-config.json")
     local = "$repo_root/config/mm-config.local.json"

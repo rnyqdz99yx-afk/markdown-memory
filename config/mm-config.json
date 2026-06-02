@@ -1,27 +1,28 @@
 {
-  "_doc": "См. docs/CONFIG-LOADING.md для алгоритма загрузки. Машинно-специфичные overrides — в config/mm-config.local.json (gitignored).",
+  "_doc": "ШАБЛОН. Личные пути и данные задаются через /mm setup → config/mm-config.local.json (gitignored), который перекрывает значения отсюда. См. docs/CONFIG-LOADING.md.",
   "_version_note": "version — единый источник версии mm-системы (repo-wide release). passport.mm_version проставляется отсюда при /mm-init-project. Per-skill version: в SKILL.md — гранулярная история конкретного скилла, это не рассинхрон.",
   "version": "0.5.2",
   "namespace": "mm",
   "default_language": "ru",
   "user": {
-    "name": "louise",
-    "domain": "Telegram-боты и автоматизация",
-    "stack": "aiogram 3.x · Python 3.12 · SQLite/sqlmodel · loguru · Railway",
+    "name": "<your-name>",
+    "domain": "<чем занимаешься, напр. Telegram-боты / веб / data>",
+    "stack": "<твой основной стек>",
     "telegram_admin_id": null,
-    "_note": "Committed-значения — дефолты louise. Другой пользователь переопределяет их через /mm setup → config/mm-config.local.json (gitignored)."
+    "_note": "Заполняется через /mm setup в mm-config.local.json. Здесь — плейсхолдеры."
   },
   "paths": {
-    "obsidian_vault": "C:\\Users\\louise\\Documents\\Obsidian Vault",
-    "obsidian_claude_root": "C:\\Users\\louise\\Documents\\Obsidian Vault\\Claude",
-    "obsidian_bridge": "C:\\Users\\louise\\Documents\\Obsidian Vault\\Claude\\Bridge",
-    "obsidian_bridge_archive": "C:\\Users\\louise\\Documents\\Obsidian Vault\\Claude\\Bridge\\archive",
-    "obsidian_sessions": "C:\\Users\\louise\\Documents\\Obsidian Vault\\Claude\\Sessions",
-    "obsidian_projects": "C:\\Users\\louise\\Documents\\Obsidian Vault\\Claude\\Projects",
-    "obsidian_index": "C:\\Users\\louise\\Documents\\Obsidian Vault\\Claude\\INDEX.md",
-    "skills_repo": "C:\\Users\\louise\\Desktop\\louise-skills",
-    "skills_active": "C:\\Users\\louise\\.claude\\skills",
-    "scripts_root": "C:\\Users\\louise\\Desktop\\Scripts"
+    "_note": "Плейсхолдеры. Замени под себя через /mm setup (пишет в mm-config.local.json). <USER> = твой профиль Windows.",
+    "obsidian_vault": "C:\\Users\\<USER>\\Documents\\Obsidian Vault",
+    "obsidian_claude_root": "C:\\Users\\<USER>\\Documents\\Obsidian Vault\\Claude",
+    "obsidian_bridge": "C:\\Users\\<USER>\\Documents\\Obsidian Vault\\Claude\\Bridge",
+    "obsidian_bridge_archive": "C:\\Users\\<USER>\\Documents\\Obsidian Vault\\Claude\\Bridge\\archive",
+    "obsidian_sessions": "C:\\Users\\<USER>\\Documents\\Obsidian Vault\\Claude\\Sessions",
+    "obsidian_projects": "C:\\Users\\<USER>\\Documents\\Obsidian Vault\\Claude\\Projects",
+    "obsidian_index": "C:\\Users\\<USER>\\Documents\\Obsidian Vault\\Claude\\INDEX.md",
+    "skills_repo": "C:\\Users\\<USER>\\louise-skills",
+    "skills_active": "C:\\Users\\<USER>\\.claude\\skills",
+    "scripts_root": "C:\\Users\\<USER>\\Scripts"
   },
   "bot_defaults": {
     "framework": "aiogram",
