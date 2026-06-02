@@ -1,284 +1,161 @@
-# louise-skills
+<div align="center">
 
-**mm-система** — набор кастомных skills `mm-*`, связывающих `claude.ai` (идеи) ↔ Claude Code в PowerShell (работа) ↔ Obsidian (общая память между чатами и сессиями). Изначально сделана под louise, но **рассчитана на любого пользователя** — настраивается под себя одной командой.
+# mm — markdown memory & workflow system
 
-## Быстрый старт (новый пользователь)
+**A file-based memory and prompt bridge that connects claude.ai (where you think) ↔ Claude Code (where you build) ↔ Obsidian (shared long-term memory).**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+![Version](https://img.shields.io/badge/version-0.5.2-green.svg)
+![Type: Agent Skills](https://img.shields.io/badge/type-Claude%20Agent%20Skills-8A2BE2.svg)
+![Platform: Windows](https://img.shields.io/badge/platform-Windows%20(primary)-lightgrey.svg)
+
+<!-- TODO: record a short terminal demo (asciinema / GIF) and drop it here -->
+<!-- <img src="docs/assets/demo.gif" width="640" alt="mm in action" /> -->
+
+</div>
+
+---
+
+## What is this?
+
+When you build with Claude, your work is split across two places: you sketch ideas and plan in **claude.ai**, then do the real work in **Claude Code** in your terminal. Those two sides don't share memory, and context evaporates between sessions, between chats, and whenever the context window compacts.
+
+**mm** closes that gap. It's a set of [Claude Agent Skills](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview) plus a small PowerShell installer that gives you:
+
+- **One shared memory** for every project, stored as plain markdown in an Obsidian vault (passport, handoff, session history).
+- **A prompt bridge** so an idea worked out in claude.ai becomes a clean, self-contained task you paste into Claude Code.
+- **A simple lifecycle** — start a project, resume it, save a session, hand off to a new chat — with no copy-pasting your whole history every time.
+
+Everything is markdown and files. No database, no cloud, no lock-in.
+
+---
+
+## How it works
+
+mm spans three environments that share state through files, not magic:
+
+```mermaid
+flowchart LR
+    A["claude.ai<br/>(ideas, planning)<br/>mm-web-bridge skill"]
+    B["Claude Code / PowerShell<br/>(real work)<br/>10 mm-* skills"]
+    C["Obsidian vault<br/>(shared memory)<br/>passport · handoff · sessions"]
+
+    A -- "self-contained prompt<br/>(copy-paste)" --> B
+    B -- "writes notes" --> C
+    C -- "passport + handoff<br/>loaded into Project Knowledge" --> A
+    C -- "read on resume" --> B
+```
+
+- **claude.ai side** is a single skill (`mm-web-bridge`): it challenges your idea, checks fast-moving tech against the live web, and composes the prompt you'll run in Claude Code.
+- **Claude Code side** is 10 `mm-*` skills that do the work and keep the vault up to date.
+- **Obsidian** is just the folder where the markdown lives. Obsidian indexes it for you; mm reads and writes the files directly.
+
+---
+
+## Quick start
+
+### Prerequisites
+
+- [Claude Code](https://docs.claude.com/en/docs/claude-code) CLI
+- Windows + PowerShell (primary platform — see [Cross-platform](#cross-platform) below)
+- An Obsidian vault (any folder works; Obsidian itself is optional but recommended)
+
+### Install (Claude Code side)
 
 ```powershell
-# 1. Клонируй репо
+# 1. Clone
 git clone https://github.com/mworldorg/louise-skills.git
 cd louise-skills
 
-# 2. Установи skills (junction'ы в ~/.claude/skills + env var MM_REPO_ROOT)
+# 2. Register the skills (creates junctions into ~/.claude/skills and sets MM_REPO_ROOT)
 powershell scripts/register-skills.ps1
 
-# 3. Перезапусти Claude Code, затем персонализируй под себя:
-/mm setup        # спросит имя, стек, путь к Obsidian vault → запишет в mm-config.local.json
-
-# 4. Проверь и заводи первый проект:
-/mm check        # самопроверка системы
-/mm new          # оформить паспорт проекта
+# 3. Personalize (writes your name/paths into a gitignored local config)
+/mm setup
 ```
 
-Личные данные (имя, пути, стек) хранятся в `config/mm-config.local.json` (gitignored) — committed-файлы остаются generic-шаблоном. Подробный онбординг: [docs/GETTING-STARTED.md](docs/GETTING-STARTED.md).
+### Connect the claude.ai side
 
-## Зачем
+1. Create a Project in claude.ai for your work.
+2. Add your project's `passport.md` and `handoff.md` to **Project Knowledge**.
+3. Load the `mm-web-bridge` skill (in `claude-ai-skills/mm-web-bridge/`) into that Project.
+4. First message in a new chat:
+   > *"Read handoff.md and passport.md, tell me where we are and suggest the next step."*
 
-Решает четыре проблемы:
+### The loop
 
-1. **«Забыла какие skills использовала ранее»** — все skills в этом git-репо, junction'ятся в `~/.claude/skills/`, на любой машине: `git clone` + `register-skills.ps1` = всё доступно.
-2. **«Новый чат в claude.ai не знает про проект»** — `passport.md` живёт в Project Knowledge, `handoff.md` догружает контекст последних сессий.
-3. **«claude.ai слушает идеи, PowerShell делает работу»** — `mm-bridge` пишет файл-мост в Obsidian, копипастишь оттуда в PowerShell.
-4. **«Каждый проект приходится настраивать руками»** — `mm-init-project` за один раз создаёт паспорт, обсидиан-структуру, инструкции для claude.ai.
-
-## Архитектура
-
+```text
+/mm resume   →   discuss in claude.ai   →   paste prompt into Claude Code   →   /mm save   →   /mm next
 ```
-louise-skills/  (этот репо — source of truth)
-├── skills/                          (10 mm-* skills, junction'ятся в ~/.claude/skills/)
-│   ├── mm/                          ← диспетчер (/mm new, /mm save, /mm bridge, ...)
-│   ├── mm-setup/                    ← персонализация под пользователя (имя, стек, пути)
-│   ├── mm-init-project/             ← создать/обновить паспорт + Obsidian + claude.ai instructions
-│   ├── mm-resume/                   ← «где мы» — passport + last session + git + GSD
-│   ├── mm-projects/                 ← обзор всех проектов одним экраном
-│   ├── mm-bridge/                   ← промпт-мост в файл (claude.ai → PowerShell)
-│   ├── mm-handoff/                  ← сводка для нового чата claude.ai (15-категорийная)
-│   ├── mm-save-session/             ← закрыть сессию, лог в Obsidian
-│   ├── mm-instructions/             ← генерить Project Instructions для claude.ai
-│   └── mm-doctor/                   ← самопроверка системы (junction'ы, конфиг, паспорта, GSD)
-├── claude-ai-skills/                ← скиллы для ЗАГРУЗКИ в claude.ai (НЕ Claude Code; не джанкшенятся)
-│   └── mm-web-bridge/               ← веб-партнёр: обсуждение идей + веб-проверка + промпт-композер
-├── templates/
-│   ├── passport.md                  ← стандарт паспорта (11 секций + privacy checklist)
-│   ├── project-instructions.md      ← шаблон для claude.ai Instructions
-│   ├── prompt-frameworks.md         ← CRISPE / XML / PERSONA / HYPOTHESIS для mm-bridge
-│   └── tg-bot-env.example           ← .env шаблон для Telegram bridge
-├── config/
-│   ├── mm-config.json               ← committed: общие пути и дефолты
-│   └── mm-config.local.example.json ← пример overrides для конкретной машины (gitignored)
-├── docs/
-│   ├── CONFIG-LOADING.md            ← как skills находят config (env / junction / fallback)
-│   └── TG-BRIDGE.md                 ← опциональная Telegram-bridge: setup и архитектура
-├── scripts/
-│   ├── register-skills.ps1          ← junction'ит skills/ + ставит MM_REPO_ROOT env var
-│   └── install-tg-bridge.ps1        ← опциональный setup Telegram-бота
-├── external/                        ← (gitignored) клоны третьих репо если установлены
-└── MIGRATION.md                     ← миграция со старой системы Claude Setup/
-```
-
-**Source of truth:** этот git-репо.
-**Active location:** `~/.claude/skills/mm-*` через NTFS junction. Edit в репо — мгновенно везде.
-**Портабельность:** skills находят config через `MM_REPO_ROOT` env var → не привязаны к `C:\Users\louise\...`.
-
-## Setup на новой машине
-
-```powershell
-git clone <remote> <path>\louise-skills
-cd <path>\louise-skills
-pwsh scripts/register-skills.ps1
-# Скрипт сам поставит MM_REPO_ROOT в User-scope env var
-# Перезапусти терминал и Claude Code
-
-# Если Obsidian живёт на другом пути:
-copy config/mm-config.local.example.json config/mm-config.local.json
-# Отредактируй mm-config.local.json (он gitignored)
-```
-
-После этого — все mm-* команды работают в любом проекте.
 
 ---
 
-# Три сценария workflow
+## Skills
 
-## A. Новый или существующий проект → инициализация
+Ten skills on the Claude Code side, plus one on the claude.ai side.
 
-```
-1. cd <папка проекта> && claude
-2. /mm new          (синоним: /mm init или /mm-init-project)
-   → Discovery: скилл сканирует *.md в проекте
-   → Preview: показывает план «СОЗДАМ / ИЗМЕНЮ / НЕ ТРОНУ»
-   → ты подтверждаешь y
-   → secret-grep: проверяет паспорт на токены перед загрузкой в claude.ai
-3. Открой passport.md, заполни секцию 8 «Контекст для промптов» — это критично
-4. claude.ai → New Project «<имя>»
-   → Knowledge: загрузи passport.md из Obsidian
-   → Instructions: вставь текст из <obsidian>/Projects/<имя>/project-instructions.md
-5. Готово. Описывай идеи в claude.ai → получай промпты для PowerShell
-```
-
-## B. Контекст в чате claude.ai заполнился
-
-> handoff.md создаётся скелетом ещё при `/mm new` и автоматически обновляется при каждом `/mm save`. `/mm next` нужен только чтобы обновить его **посреди** работы, не закрывая сессию.
-
-```
-1. В Claude Code (PowerShell): /mm next   (синоним: /mm handoff)
-   → обновит handoff.md в <obsidian>/Projects/<имя>/ (создаст, если его не было)
-2. claude.ai → этот же Project → Knowledge
-   → удали старый handoff.md (если был)
-   → загрузи новый
-3. New Chat в Project
-4. Первая реплика: «Прочитай handoff.md и passport.md, скажи где мы.»
-5. Продолжаешь — passport уже знаком, handoff даёт последние 1-2 недели
-```
-
-## C. Конец сессии
-
-```
-В PowerShell-сессии: /mm save   (синоним: /mm-save-session)
-→ запишет лог в Obsidian/Claude/Sessions/
-→ обновит project note и dashboard
-→ обновит INDEX.md
-```
-
-Триггерные слова тоже работают: «закругляемся», «сохрани», «до завтра», «конец дня».
-
----
-
-# Skills cheat sheet
-
-| Короткая | Полная | Когда |
-|---|---|---|
-| `/mm` | — | Список всех команд |
-| `/mm setup` | `/mm-setup` | Персонализация под себя (1 раз после клона репо) |
-| `/mm new` | `/mm-init-project` | Инициализация / обновление проекта |
-| `/mm resume` | `/mm-resume` | «Где мы» — passport + last session + git + GSD-фаза |
-| `/mm projects` | `/mm-projects` | Обзор всех проектов одним экраном |
-| `/mm prompt` | `/mm-bridge` | Промпт-мост в файл для PowerShell-Клода |
-| `/mm next` | `/mm-handoff` | Контекст в claude.ai заполнен — сводка для нового чата |
-| `/mm save` | `/mm-save-session` | Конец сессии — лог в Obsidian |
-| `/mm rules` | `/mm-instructions` | Сгенерить Project Instructions для claude.ai |
-| `/mm check` | `/mm-doctor` | Самопроверка: junction'ы, vault, конфиг, паспорта |
-
-Полные имена тоже всегда работают.
-
-## Типичный цикл работы
-
-```
-утром / после /clear  →  /mm resume    ← восстановил контекст за 2 секунды
-работаешь             →  ... (или /mm prompt если из claude.ai)
-закончил день         →  /mm save      ← лог в Obsidian
-контекст забит        →  /mm save → /clear → /mm resume
-новый чат claude.ai   →  /mm next      ← handoff в Project Knowledge
-```
-
-## /compact vs /clear vs exit&claude
-
-| Ситуация | Лучшее действие |
+| Skill | What it does |
 |---|---|
-| Контекст < 70%, задача та же | `/compact` |
-| Контекст > 70%, та же задача — нужен свежий контекст | `/mm save` → `/clear` → `/mm resume` |
-| Закончил веху, новая задача | `/mm save` → `/clear` |
-| Странное поведение, что-то залипло | `exit` → `claude` → `/mm resume` |
-| Меняешь проект (cd в другой) | `exit` → `claude` → `/mm resume` |
-
-**Никогда** не делай `/clear` без `/mm save` сначала — потеряешь контекст текущей сессии. Лог в Obsidian = твоя страховка.
-
----
-
-# mm vs Anthropic Memory vs GSD vs context-mode — что какое решает
-
-Четыре слоя контекста, каждый решает своё. Не пересекаются, дополняют друг друга.
-
-| Слой | Кто заполняет | Что хранит | Когда обновляется |
-|---|---|---|---|
-| **Anthropic Memory** | Anthropic auto (в claude.ai Project) | Долгосрочные факты о тебе и проекте, выводы | Сама учится из чатов |
-| **Project Instructions** | `/mm rules` → копипаст | Правила: как Claude должен работать в этом Project | Один раз при создании Project + после крупных изменений паспорта |
-| **Project Knowledge (Files)** | `/mm new` + `/mm save` → копипаст из Obsidian | `passport.md` (структура) + `handoff.md` (свежий контекст) | passport — раз в неделю; handoff — авто при каждом `/mm save` (вручную `/mm next` посреди работы) |
-| **GSD** (`.planning/` или `.gsd/`) | `/gsd-*` команды | Пофазовое планирование внутри milestone | Активно во время разработки крупной фичи |
-| **context-mode** (MCP, плагин) | Хуки автоматом → SQLite в `~/.claude/context-mode/` | События сессии по 15 категориям, restore после `/compact` и рестарта | Постоянно сама |
-| **karpathy-guidelines** (плагин) | — (поведенческие правила) | 4 принципа кодинга | Применяются при каждом написании кода |
-| **Telegram bridge** (опционально) | claude-code-telegram бот | Канал push'а задач из Telegram → новая Claude сессия | По запросу с телефона |
-
-**Правила использования:**
-- **Маленький / средний проект** — только mm. GSD оверкилл.
-- **Крупная фича** — mm для chat ↔ code моста + GSD для разбиения на фазы. Не конфликтуют.
-- **Любая длительная сессия** — context-mode работает сам в фоне (если установлен), сильно экономит токены.
-- **Anthropic Memory** — оставь как есть, она работает сама. Не пытайся ей «помогать» — это не наша зона.
-
-## Что устанавливать дополнительно (рекомендованные плагины)
-
-```powershell
-# Karpathy 4 принципа (применяются всегда, через global CLAUDE.md тоже продублировано)
-claude plugin marketplace add forrestchang/andrej-karpathy-skills
-claude plugin install andrej-karpathy-skills@karpathy-skills
-
-# context-mode — экономия контекстного окна, persistent memory сессий, sandbox для кода
-claude plugin marketplace add mksglu/context-mode
-claude plugin install context-mode@context-mode
-
-# Telegram bridge (опционально — push prompt с телефона, см. docs/TG-BRIDGE.md)
-pwsh scripts/install-tg-bridge.ps1
-# затем заполни external/claude-code-telegram/.env, см. инструкцию в скрипте
-```
-
-После установки `/mm check` подтвердит что всё подцепилось.
-
-**context-mode хуки и GSD хуки сосуществуют** — context-mode подключает свои хуки через plugin manifest, GSD — через `~/.claude/settings.json`. Claude Code запускает оба набора параллельно для одного события. Никаких ручных правок не требуется.
-
-## Telegram bridge — отдельный канал к Claude Code
-
-Для push'а задач с телефона (новая Claude сессия в указанной папке) — поставь TG-бот:
-
-```powershell
-pwsh scripts/install-tg-bridge.ps1
-```
-
-Скрипт клонирует [RichardAtCT/claude-code-telegram](https://github.com/RichardAtCT/claude-code-telegram), создаёт `.venv`, кладёт `.env` шаблон. Дальше — получаешь токен у @BotFather, узнаёшь свой user_id, заполняешь `.env`, запускаешь.
-
-Когда использовать:
-- 📱 На улице с телефоном — «обнови README», «прогон тестов»
-- ⏰ Cron — например, ежедневный `/mm check`
-- 🤖 Автономные задачи без надзора
-
-Когда **не** использовать:
-- 💬 Интерактивная работа в текущей PowerShell-сессии — копипаст эффективнее (warm контекст не теряется)
-- 🔒 Чувствительные репо — Telegram-аккаунт можно угнать через SIM swap
-
-Полная инструкция и архитектура: [docs/TG-BRIDGE.md](docs/TG-BRIDGE.md).
+| `mm` | Dispatcher — short aliases for everything below |
+| `mm setup` | One-time personalization after cloning |
+| `mm-init-project` | Create a project passport + structure in the vault |
+| `mm-resume` | Load passport + dashboard + last session on start |
+| `mm-projects` | One-screen overview of all projects (read-only) |
+| `mm-bridge` | Wrap a task into a prompt framework for Claude Code |
+| `mm-handoff` | Generate the cross-chat handoff summary |
+| `mm-save-session` | Capture decisions and progress into the vault |
+| `mm-instructions` | Manage project instructions |
+| `mm-doctor` | Health checks, version sync, consistency with passport |
+| `mm-web-bridge` *(claude.ai)* | Idea partner + prompt composer in the browser |
 
 ---
 
-# Конфиг
+## Integrations
 
-Все пути и дефолты — в `config/mm-config.json` (committed). Машинно-специфичные overrides — в `config/mm-config.local.json` (gitignored, см. `mm-config.local.example.json`).
+mm cooperates with several external tools and bodies of work. Where it builds on someone else's project, that project keeps its own license and attribution.
 
-Подробности про портабельность и алгоритм поиска — [docs/CONFIG-LOADING.md](docs/CONFIG-LOADING.md).
+- **GSD** — phase-based planning framework. mm **reads** GSD state (`.planning/` / `.gsd/`) and cooperates with it; it never writes there. *(deepest integration)*
+- **Karpathy guidelines** — four meta-principles (think before coding, simplicity first, surgical changes, goal-driven) applied across both the Claude Code and claude.ai sides. MIT.
+- **[context-mode](https://github.com/mksglu/context-mode)** — in-session context optimization and continuity. See [Memory layers](#two-memory-layers) for how it relates to mm. Elastic License 2.0 (source-available).
+- **prompt-frameworks** — CRISPE / XML / PERSONA / HYPOTHESIS templates used by `mm-bridge`. Inspired by [awesome-claude-prompts](https://github.com/langgptai/awesome-claude-prompts), MIT.
+- **[claude-code-telegram](https://github.com/RichardAtCT/claude-code-telegram)** — optional Telegram bridge, off by default. MIT.
+
+### Two memory layers
+
+mm and context-mode solve **different** problems and don't overlap:
+
+- **context-mode** keeps a *single session* alive — it survives auto-compaction and `--resume` by rebuilding your working state inside Claude Code.
+- **mm** keeps *long-term project history* — decisions, handoffs, and session notes that persist across sessions and across chats, in the Obsidian vault.
+
+If you use both, context-mode already handles compaction; mm doesn't try to.
 
 ---
 
-## Добавить новый mm-skill
+## Cross-platform
 
-1. Создай `skills/mm-<name>/SKILL.md`. Frontmatter:
-   ```yaml
-   ---
-   name: mm-<name>
-   version: 0.4.0
-   description: <короткое описание + триггер-фразы для авто-вызова>
-   ---
-   ```
-2. В секции «Конфиг» сошлись на `docs/CONFIG-LOADING.md` (не хардкодь пути).
-3. Запусти `pwsh scripts/register-skills.ps1`.
-4. (Опционально) добавь в `/mm` диспетчер алиас.
-5. Перезапусти Claude Code сессию.
+mm is **Windows-first** today: the installer (`register-skills.ps1`) and paths assume Windows + PowerShell. The skills themselves are plain markdown and platform-agnostic. Running the installer on macOS/Linux would need a shell-script equivalent — contributions welcome.
 
-## Git
+---
 
-Сейчас remote не настроен. Когда решишь:
+## Conventions
 
-```powershell
-git remote add origin <url>
-git push -u origin main
-```
+- **Personal data never lands in committed files.** Your name and paths live in a gitignored `mm-config.local.json` written by `/mm setup`. The committed config stays a generic template.
+- **Single source of truth for versions** — `config.version`. Per-skill `version:` fields are intentionally granular.
+- **Skills preview before they write**, and never write into GSD's `.planning/` / `.gsd/`.
 
-После этого можно использовать на других машинах через `git clone` + `register-skills.ps1`.
+---
 
-## См. также
+## Documentation
 
-- [`docs/GETTING-STARTED.md`](docs/GETTING-STARTED.md) — **главный гайд:** как взять новый проект или мигрировать существующий за 15-30 минут (со всеми нюансами и rollback)
-- [`docs/CONFIG-LOADING.md`](docs/CONFIG-LOADING.md) — алгоритм поиска mm-config.json
-- [`docs/TG-BRIDGE.md`](docs/TG-BRIDGE.md) — опциональный Telegram-бот: setup и архитектура
-- [`MIGRATION.md`](MIGRATION.md) — миграция со старой папки `Claude Setup/`
-- [`templates/passport.md`](templates/passport.md) — формат паспорта проекта
-- [`templates/project-instructions.md`](templates/project-instructions.md) — шаблон для claude.ai
-- [`templates/prompt-frameworks.md`](templates/prompt-frameworks.md) — CRISPE/XML/PERSONA/HYPOTHESIS
-- [`templates/tg-bot-env.example`](templates/tg-bot-env.example) — шаблон .env для Telegram-бота
+- [`passport.md`](templates/passport.md) — the per-project source of truth (architecture, conventions, constraints)
+- [`docs/`](docs/) — deeper guides (Telegram bridge, config loading, etc.)
+
+---
+
+## Contributing
+
+Issues and PRs welcome. New skills go in `skills/your-skill/SKILL.md` with YAML frontmatter; claude.ai skills go in `claude-ai-skills/` (they are **not** junctioned into Claude Code).
+
+## License
+
+MIT — see [LICENSE](LICENSE). Integrated projects retain their own licenses (see [Integrations](#integrations)).
