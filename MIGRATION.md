@@ -1,4 +1,4 @@
-# Migration: `Claude Setup/` → `louise-skills/`
+# Migration: `Claude Setup/` → `markdown-memory/`
 
 > Дата: 2026-05-09
 > Контекст: первая итерация (`Claude Setup/`) была копипаст-промптами. Вторая итерация (этот репо) — система skills с автоподкачкой.
@@ -7,7 +7,7 @@
 
 `Claude Setup/` больше не нужна. Всё, что она делала, теперь делают **mm-skills** автоматически.
 
-| Было (`Claude Setup/`) | Стало (`louise-skills/`) |
+| Было (`Claude Setup/`) | Стало (`markdown-memory/`) |
 |---|---|
 | `CLAUDE_CODE_SETUP.md` — копипастил в Claude Code | `/mm-init-project` — skill, доступен везде |
 | `CLAUDE_CHAT_INSTRUCTIONS.md` — копипастил в Project Instructions | `/mm-instructions` — генерит текст под проект, кладёт в Obsidian |
@@ -17,16 +17,16 @@
 
 ## Что делать с папкой `Claude Setup/`
 
-Папка лежит в `C:\Users\louise\Desktop\louise-skills\Claude Setup\` (вне git, untracked).
+Папка лежит в `C:\Users\louise\Desktop\markdown-memory\Claude Setup\` (вне git, untracked).
 
 **Безопасный путь:**
 1. Переименуй в `_legacy_claude_setup/` чтобы не путалась под рукой:
    ```powershell
-   Rename-Item "C:\Users\louise\Desktop\louise-skills\Claude Setup" "_legacy_claude_setup"
+   Rename-Item "C:\Users\louise\Desktop\markdown-memory\Claude Setup" "_legacy_claude_setup"
    ```
 2. Через 2-3 недели использования mm-системы — удали:
    ```powershell
-   Remove-Item -Recurse -Force "C:\Users\louise\Desktop\louise-skills\_legacy_claude_setup"
+   Remove-Item -Recurse -Force "C:\Users\louise\Desktop\markdown-memory\_legacy_claude_setup"
    ```
 
 **Что взять из старой системы перед удалением (если захочешь):**
@@ -56,8 +56,8 @@ Skills `mm-*` живут в `~/.claude/skills/` через NTFS junction'ы, sou
 ## На другой машине
 
 ```powershell
-git clone <remote> C:\Users\<user>\Desktop\louise-skills
-cd C:\Users\<user>\Desktop\louise-skills
+git clone <remote> C:\Users\<user>\Desktop\markdown-memory
+cd C:\Users\<user>\Desktop\markdown-memory
 # Поправь пути в config/mm-config.json под свою машину
 pwsh scripts/register-skills.ps1
 # Перезапусти Claude Code

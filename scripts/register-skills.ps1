@@ -1,5 +1,5 @@
 # register-skills.ps1
-# Creates NTFS junctions from louise-skills/skills/<name>/ and vendor/<name>/ to ~/.claude/skills/<name>/
+# Creates NTFS junctions from markdown-memory/skills/<name>/ and vendor/<name>/ to ~/.claude/skills/<name>/
 # Also sets MM_REPO_ROOT user env var so mm-* skills find config portably.
 # Run after adding/removing a skill folder, or after `git pull`.
 # Idempotent: skips if junction already correct, recreates if wrong target.

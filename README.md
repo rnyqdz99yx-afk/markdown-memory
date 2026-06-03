@@ -65,8 +65,8 @@ flowchart LR
 ```powershell
 # 0. (first time only) launch Claude Code once so ~/.claude/skills exists
 # 1. Clone
-git clone https://github.com/mworldorg/louise-skills.git
-cd louise-skills
+git clone https://github.com/mworldorg/markdown-memory.git
+cd markdown-memory
 
 # 2. Register the skills (junctions into ~/.claude/skills + sets MM_REPO_ROOT)
 #    If PowerShell blocks the script, run instead:

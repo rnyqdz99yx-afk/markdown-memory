@@ -31,9 +31,9 @@ PowerShell:
 ```powershell
 $skillPath = "$env:USERPROFILE\.claude\skills\mm-bridge"
 $realPath = (Get-Item $skillPath -Force).Target
-# $realPath ≈ C:\Users\louise\Desktop\louise-skills\skills\mm-bridge
+# $realPath ≈ C:\Users\louise\Desktop\markdown-memory\skills\mm-bridge
 $repoRoot = Split-Path -Parent (Split-Path -Parent $realPath)
-# $repoRoot = C:\Users\louise\Desktop\louise-skills
+# $repoRoot = C:\Users\louise\Desktop\markdown-memory
 ```
 
 Если `<repoRoot>/config/mm-config.json` существует — используй. Stop.
@@ -51,7 +51,7 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent $realPath)
 Не могу найти mm-config.json. Установи MM_REPO_ROOT:
 
 PowerShell:
-[Environment]::SetEnvironmentVariable("MM_REPO_ROOT", "C:\путь\к\louise-skills", "User")
+[Environment]::SetEnvironmentVariable("MM_REPO_ROOT", "C:\путь\к\markdown-memory", "User")
 
 Или запусти scripts/register-skills.ps1 — он установит автоматом.
 ```

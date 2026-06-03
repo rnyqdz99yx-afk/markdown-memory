@@ -97,7 +97,7 @@ description: Генерирует текст для claude.ai → Project → In
 
 ## Edge cases
 
-- **Шаблон отсутствует** (`templates/project-instructions.md` нет): скажи `Не найден шаблон: <_repo_root>/templates/project-instructions.md. Возможно, louise-skills не до конца установлен — проверь git pull в репо (см. $env:MM_REPO_ROOT).`
+- **Шаблон отсутствует** (`templates/project-instructions.md` нет): скажи `Не найден шаблон: <_repo_root>/templates/project-instructions.md. Возможно, markdown-memory не до конца установлен — проверь git pull в репо (см. $env:MM_REPO_ROOT).`
 - **Секция 8 паспорта пустая** (только TODO-маркер): пропусти секцию «Особенности этого проекта», предложи `Заполни сначала секцию 8 в passport.md, потом перегенери.`
 - **Имя проекта с пробелами** (плохая практика): пройдёт, но в файле проекта в Obsidian используй slug.
 

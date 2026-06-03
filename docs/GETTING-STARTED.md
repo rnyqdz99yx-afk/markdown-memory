@@ -361,7 +361,7 @@ rm -r "$env:USERPROFILE\Documents\Obsidian Vault\Claude\Projects\<имя>"
 **A:** mm детектит и `.planning/` (v1), и `.gsd/` (v2). В passport frontmatter поле `gsd_version: v1|v2|none`. mm-resume ветвится автоматически.
 
 ### Q: Я работаю с двух машин. Как синхронизировать?
-**A:** Запушь `louise-skills` в git remote (приватный). На второй машине: `git clone` → `pwsh scripts/register-skills.ps1` → создай `config/mm-config.local.json` с путями к Obsidian/coupling-папкам этой машины. Obsidian sync (через Obsidian Sync, iCloud, OneDrive) перенесёт паспорта/sessions.
+**A:** Запушь `markdown-memory` в git remote (приватный). На второй машине: `git clone` → `pwsh scripts/register-skills.ps1` → создай `config/mm-config.local.json` с путями к Obsidian/coupling-папкам этой машины. Obsidian sync (через Obsidian Sync, iCloud, OneDrive) перенесёт паспорта/sessions.
 
 ---
 

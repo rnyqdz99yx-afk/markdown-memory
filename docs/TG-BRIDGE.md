@@ -57,7 +57,7 @@
 ### Шаг 1. Запусти setup-скрипт (автоматическое)
 
 ```powershell
-cd C:\Users\louise\Desktop\louise-skills
+cd C:\Users\louise\Desktop\markdown-memory
 pwsh scripts/install-tg-bridge.ps1
 ```
 
@@ -75,7 +75,7 @@ pwsh scripts/install-tg-bridge.ps1
 
 ### Шаг 3. Заполни .env
 
-Открой `C:\Users\louise\Desktop\louise-skills\external\claude-code-telegram\.env`, впиши:
+Открой `C:\Users\louise\Desktop\markdown-memory\external\claude-code-telegram\.env`, впиши:
 
 ```
 TELEGRAM_BOT_TOKEN=<токен от BotFather>
@@ -89,7 +89,7 @@ CLAUDE_MAX_COST_PER_USER=10                      # USD/день, защита о
 ### Шаг 4. Запусти бота
 
 ```powershell
-cd C:\Users\louise\Desktop\louise-skills\external\claude-code-telegram
+cd C:\Users\louise\Desktop\markdown-memory\external\claude-code-telegram
 .\.venv\Scripts\python.exe -m bot
 ```
 
@@ -102,7 +102,7 @@ cd C:\Users\louise\Desktop\louise-skills\external\claude-code-telegram
 **Windows Task Scheduler** — самый простой:
 
 ```powershell
-$action = New-ScheduledTaskAction -Execute "C:\Users\louise\Desktop\louise-skills\external\claude-code-telegram\.venv\Scripts\python.exe" -Argument "-m bot" -WorkingDirectory "C:\Users\louise\Desktop\louise-skills\external\claude-code-telegram"
+$action = New-ScheduledTaskAction -Execute "C:\Users\louise\Desktop\markdown-memory\external\claude-code-telegram\.venv\Scripts\python.exe" -Argument "-m bot" -WorkingDirectory "C:\Users\louise\Desktop\markdown-memory\external\claude-code-telegram"
 $trigger = New-ScheduledTaskTrigger -AtLogOn
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable
 Register-ScheduledTask -TaskName "mm-tg-bridge" -Action $action -Trigger $trigger -Settings $settings
@@ -112,7 +112,7 @@ Register-ScheduledTask -TaskName "mm-tg-bridge" -Action $action -Trigger $trigge
 
 ### Шаг 6. Подключи к mm-системе
 
-Открой `C:\Users\louise\Desktop\louise-skills\config\mm-config.local.json` (создай из `mm-config.local.example.json` если нет):
+Открой `C:\Users\louise\Desktop\markdown-memory\config\mm-config.local.json` (создай из `mm-config.local.example.json` если нет):
 
 ```json
 {
@@ -135,7 +135,7 @@ Register-ScheduledTask -TaskName "mm-tg-bridge" -Action $action -Trigger $trigge
 - **Telegram-аккаунт можно угнать через SIM swap.** Не клади бота в открытый доступ.
 - **Path sandboxing.** Сужай `APPROVED_DIRECTORY` до минимума (например `C:\Users\louise\Desktop\Projects`, не `C:\`).
 - **Cost cap.** `CLAUDE_MAX_COST_PER_USER` защищает от runaway. Проверь логи.
-- **Не клади токен в репо.** `.env` в `.gitignore` бота И в `.gitignore` louise-skills.
+- **Не клади токен в репо.** `.env` в `.gitignore` бота И в `.gitignore` markdown-memory.
 
 ## Когда **не** использовать TG-бот
 
@@ -158,7 +158,7 @@ Register-ScheduledTask -TaskName "mm-tg-bridge" -Action $action -Trigger $trigge
 # в config/mm-config.local.json: "tg_bridge.enabled": false
 
 # Удали папку:
-Remove-Item -Recurse -Force C:\Users\louise\Desktop\louise-skills\external\claude-code-telegram
+Remove-Item -Recurse -Force C:\Users\louise\Desktop\markdown-memory\external\claude-code-telegram
 
 # Опционально — удали бота в @BotFather: /deletebot
 ```

@@ -54,5 +54,5 @@ DATABASE_URL=sqlite:///./data/sessions.db
 MM_BRIDGE_WEBHOOK_PATH=/mm-bridge
 
 # === НИКОГДА НЕ КОММИТИТЬ ЭТОТ ФАЙЛ ===
-# В .gitignore основного репо уже есть .env*, в louise-skills/.gitignore тоже.
+# В .gitignore основного репо уже есть .env*, в markdown-memory/.gitignore тоже.
 # external/claude-code-telegram/.env защищён их собственным .gitignore.
