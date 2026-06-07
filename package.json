@@ -1,0 +1,19 @@
+{
+  "name": "markdown-memory",
+  "version": "0.6.0",
+  "description": "Cross-platform Markdown-based memory/skill system for Claude Code & Antigravity IDE",
+  "main": "bin/cli.js",
+  "bin": {
+    "mm-skills": "bin/cli.js",
+    "markdown-memory": "bin/cli.js"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mworldorg/markdown-memory.git"
+  },
+  "author": "louise & nikolaimoskot",
+  "license": "MIT"
+}

@@ -156,7 +156,13 @@ Karpathy guidelines and context-mode are external Claude Code plugins (not bundl
 
 ## Cross-platform
 
-mm is **Windows-first** today: the installer (`register-skills.ps1`) and paths assume Windows + PowerShell. The skills themselves are plain markdown and platform-agnostic. Running the installer on macOS/Linux would need a shell-script equivalent — contributions welcome.
+mm is cross-platform! It is fully supported on Windows, macOS, and Linux:
+- **Windows**: Use `powershell scripts/register-skills.ps1` for PowerShell or `python3 scripts/register-skills.py`.
+- **macOS / Linux**: Use `python3 scripts/register-skills.py` (which sets up symlinks in `~/.claude/skills` and exports `MM_REPO_ROOT` in your shell profile like `.zshrc` or `.bashrc`).
+
+For the optional Telegram bridge:
+- **Windows**: Use `powershell scripts/install-tg-bridge.ps1`.
+- **macOS / Linux**: Use `python3 scripts/install-tg-bridge.py`.
 
 ---
 

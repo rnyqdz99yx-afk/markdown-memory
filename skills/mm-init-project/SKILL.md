@@ -362,8 +362,6 @@ project-instructions: возьми `<skills_repo>/templates/project-instructions
 
 Если CLAUDE.md существует **и** в нём нет строки `## mm-system` — добавь в конец:
 
-```markdown
-
 ## mm-system
 
 Этот проект подключён к mm-системе.
@@ -372,6 +370,10 @@ project-instructions: возьми `<skills_repo>/templates/project-instructions
 - Skills: глобальные `mm-*` (см. `~/.claude/skills/`)
 - Конец сессии: `/mm-save-session`
 - Перед новым чатом claude.ai: `/mm-handoff`
+
+### Интеграция с Antigravity (Gemini IDE)
+- Агент Antigravity поддерживает те же команды mm-системы.
+- При получении команды (например `/mm resume`, `/mm save`, `/mm setup`, `где мы`, `сохрани сессию`) агент должен найти соответствующий SKILL.md по пути `~/.claude/skills/mm-<name>/SKILL.md` или в каталоге репозитория `$MM_REPO_ROOT/skills/mm-<name>/SKILL.md`, прочесть его и выполнить указанные в нем инструкции.
 ```
 
 **Если `gsd_version != none`** (GSD задетектен в фазе 1e) — добавь в эту же секцию ещё подблок (подставь версию и путь STATE):

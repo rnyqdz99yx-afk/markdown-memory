@@ -40,20 +40,22 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent $realPath)
 
 ### Шаг 3. Fallback (если шаги 1-2 не сработали)
 
-Если `MM_REPO_ROOT` не задан и junction не разрезолвился — это нештатная ситуация (env var сбросилась). Надёжного «стандартного пути» на чужой машине нет, поэтому переходи к шагу 4 и попроси пользователя задать `MM_REPO_ROOT` / прогнать `register-skills.ps1`.
-
-> Прим.: на машине автора может существовать исторический путь-fallback — но в общем случае на него не полагайся, он не портативен.
+Если `MM_REPO_ROOT` не задан и симлинк/junction не разрезолвился — это нештатная ситуация (переменные окружения сбросились). Переходи к шагу 4 и попроси пользователя заново запустить автонастройку.
 
 ### Шаг 4. Если ничего не нашлось
 
 Скажи пользователю:
 ```
-Не могу найти mm-config.json. Установи MM_REPO_ROOT:
+Не могу найти mm-config.json. Установите MM_REPO_ROOT:
 
-PowerShell:
+Windows (PowerShell):
 [Environment]::SetEnvironmentVariable("MM_REPO_ROOT", "C:\путь\к\markdown-memory", "User")
 
-Или запусти scripts/register-skills.ps1 — он установит автоматом.
+macOS/Linux:
+export MM_REPO_ROOT="/Users/username/markdown-memory"
+
+Или запустите npx-установку:
+npx markdown-memory
 ```
 
 Останови выполнение skill.
@@ -94,13 +96,13 @@ PowerShell:
 function load_mm_config():
     repo_root = $env:MM_REPO_ROOT
     if not repo_root:
-        skill_dir = "$env:USERPROFILE\.claude\skills\mm-bridge"  # любой mm-skill
+        skill_dir = "~/.claude/skills/mm-bridge"  # любой mm-skill (развернуть ~)
         if exists(skill_dir):
-            real = (Get-Item skill_dir -Force).Target
+            real = resolve_symlink_or_junction(skill_dir)
             if real:
                 repo_root = parent(parent(real))
     if not repo_root or not exists("$repo_root/config/mm-config.json"):
-        error("No mm-config.json found. Set MM_REPO_ROOT or run scripts/register-skills.ps1.")
+        error("No mm-config.json found. Set MM_REPO_ROOT or run npx markdown-memory.")
 
     config = read_json("$repo_root/config/mm-config.json")
     local = "$repo_root/config/mm-config.local.json"

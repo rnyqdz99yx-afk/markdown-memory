@@ -1,12 +1,14 @@
 {
   "$comment": "Скопируй этот файл в mm-config.local.json (gitignored) и переопредели то, что отличается на этой машине. Local перекрывает основной конфиг по deep-merge.",
+  "_note_windows": "Пример путей для Windows: D:\\Sync\\ObsidianVault или C:\\Users\\username\\Documents\\Obsidian Vault",
+  "_note_macos_linux": "Пример путей для macOS/Linux: /Users/username/Obsidian/Vault",
   "paths": {
-    "obsidian_vault": "D:\\Sync\\ObsidianVault",
-    "obsidian_claude_root": "D:\\Sync\\ObsidianVault\\Claude"
+    "obsidian_vault": "/Users/username/Obsidian/Vault"
   },
   "tg_bridge": {
-    "enabled": true,
+    "enabled": false,
     "bot_username": "@my_claude_bot",
-    "approved_directory": "C:\\Users\\louise\\Desktop"
+    "approved_directory": "/Users/username/Projects",
+    "_note": "Если включен, бот будет слушать сообщения из Telegram (требуется настройка scripts/install-tg-bridge.py)"
   }
 }
