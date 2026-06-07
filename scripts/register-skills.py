@@ -169,6 +169,37 @@ def main():
             print(f"  [fail] {name} -> {e}")
             errors += 1
             
+    # Register global instructions for Antigravity (Gemini) if directory exists
+    antigravity_knowledge_dir = os.path.join(home, ".gemini", "antigravity", "knowledge")
+    if os.path.exists(antigravity_knowledge_dir):
+        global_inst_dest = os.path.join(antigravity_knowledge_dir, "mm-global-instructions.md")
+        instructions_content = """# markdown-memory (mm) Global System Instructions
+
+Эти инструкции загружаются глобально во все сессии агента Antigravity.
+
+## Обработка команд mm-системы
+Когда пользователь вводит команду с префиксом `/mm` (или запрашивает операции с контекстом, такие как "где мы", "восстанови контекст", "сохрани сессию", "сделай handoff"):
+
+1. Найдите путь к репозиторию `markdown-memory` (из переменной окружения `MM_REPO_ROOT` или через целевую папку симлинка `~/.claude/skills/mm-bridge`).
+2. Сопоставьте запрос с соответствующим скиллом:
+   - `/mm` или `/mm help` или `/mm ?` -> `skills/mm/SKILL.md`
+   - `/mm new`, `/mm init` или `/mm-init-project` -> `skills/mm-init-project/SKILL.md`
+   - `/mm setup` или `/mm onboard` -> `skills/mm-setup/SKILL.md`
+   - `/mm resume`, `/mm start` или `где мы` -> `skills/mm-resume/SKILL.md`
+   - `/mm save`, `/mm end` или `сохрани сессию` -> `skills/mm-save-session/SKILL.md`
+   - `/mm next` или `/mm handoff` -> `skills/mm-handoff/SKILL.md`
+   - `/mm prompt` или `/mm bridge` -> `skills/mm-bridge/SKILL.md`
+   - `/mm check`, `/mm doctor` или `проверь систему` -> `skills/mm-doctor/SKILL.md`
+3. Прочитайте соответствующий файл `SKILL.md` из репозитория.
+4. Выполните инструкции этого скилла точно и последовательно, используя локальные инструменты чтения файлов и запуска консольных команд (на macOS используйте `python3` вместо PowerShell для запуска скриптов репозитория).
+"""
+        try:
+            with open(global_inst_dest, "w", encoding="utf-8") as f:
+                f.write(instructions_content)
+            print(f"[antigravity] Registered global instructions at {global_inst_dest}")
+        except Exception as e:
+            print(f"[antigravity] Warning: Could not register global instructions: {e}")
+            
     print(f"\nSummary: created={created} relinked={relinked} skipped={skipped} errors={errors}")
     if errors > 0:
         sys.exit(1)
