@@ -7,6 +7,7 @@ status: <active | paused | shipped | archived>
 language: <python | typescript | go | ...>
 mm_version: <MM_VERSION>        # = config.version; проставляет mm-init-project, не хардкодить
 gsd_version: <none | v1 | v2 | core>   # детектится автоматом по .planning/ vs .gsd/
+telegram_ui_ux: <true | false>   # (для ботов) включить автопроверку UI/UX гайдлайнов в mm-doctor
 ---
 
 # <PROJECT_NAME> — Passport

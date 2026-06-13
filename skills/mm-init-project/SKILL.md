@@ -386,7 +386,7 @@ Continue? (y / n / edit)
   - Update: добавь строку «<date> Refresh: <что обновилось>».
   - Migration: «<date> Migrated from PROJECT_PASSPORT.md».
 
-Frontmatter: `created` из существующего файла или сегодня; `updated` = сегодня; `mm_version` = `config.version` из mm-config.json (подставь значение, не оставляй плейсхолдер `<MM_VERSION>`).
+Frontmatter: `created` из существующего файла или сегодня; `updated` = сегодня; `mm_version` = `config.version` из mm-config.json (подставь значение, не оставляй плейсхолдер `<MM_VERSION>`); `telegram_ui_ux` = `true` (если `tg_bot_project == true`), иначе `false`.
 
 ### 4.2. Сгенерируй файлы Obsidian Vault в памяти
 
