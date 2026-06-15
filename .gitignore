@@ -36,3 +36,7 @@ external/
 
 # Claude Code local settings (приватные настройки worktree/проекта)
 .claude/
+
+# MCP-сервер (mcp/): сборка и зависимости. package-lock.json коммитим.
+mcp/node_modules/
+mcp/dist/
