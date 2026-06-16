@@ -4,6 +4,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { scan } from './scan.js';
 import { loadPatterns } from './patterns.js';
+import { runHealth, type CheckStatus } from './health.js';
 
 const patterns = loadPatterns();
 
@@ -39,6 +40,29 @@ server.registerTool(
 
     return {
       content: [{ type: 'text', text: summary }],
+      structuredContent: result as unknown as Record<string, unknown>,
+    };
+  },
+);
+
+server.registerTool(
+  'mm_health',
+  {
+    title: 'mm system health',
+    description:
+      'Детерминированный read-only движок проверок здоровья mm-системы (Раунд 1: загрузка mm-config + проводка junction-ссылок). ' +
+      'Ничего не чинит и не пишет — возвращает только факты. Суждение и авто-фиксы — в скилле mm-doctor.',
+    inputSchema: { projectRoot: z.string().optional() }, // зарезервировано под Раунд 2
+  },
+  async () => {
+    const result = runHealth();
+    const icon = (s: CheckStatus): string => (s === 'ok' ? '✅' : s === 'warn' ? '⚠️' : '❌');
+    const lines = result.checks.map((c) => `${icon(c.status)} ${c.id}: ${c.detail}`);
+    lines.push(
+      `— итог: ✅ ${result.summary.ok} · ⚠️ ${result.summary.warn} · ❌ ${result.summary.fail}`,
+    );
+    return {
+      content: [{ type: 'text', text: lines.join('\n') }],
       structuredContent: result as unknown as Record<string, unknown>,
     };
   },
