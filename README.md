@@ -37,7 +37,7 @@ mm spans three environments that share state through files, not magic:
 ```mermaid
 flowchart LR
     A["claude.ai<br/>(ideas, planning)<br/>mm-web-bridge skill"]
-    B["Claude Code / PowerShell<br/>(real work)<br/>10 mm-* skills"]
+    B["Claude Code / PowerShell<br/>(real work)<br/>12 skills"]
     C["Obsidian vault<br/>(shared memory)<br/>passport · handoff · sessions"]
 
     A -- "self-contained prompt<br/>(copy-paste)" --> B
@@ -47,7 +47,7 @@ flowchart LR
 ```
 
 - **claude.ai side** is a single skill (`mm-web-bridge`): it challenges your idea, checks fast-moving tech against the live web, and composes the prompt you'll run in Claude Code.
-- **Claude Code side** is 10 `mm-*` skills that do the work and keep the vault up to date.
+- **Claude Code side** is the `mm` dispatcher + 11 `mm-*` skills that do the work and keep the vault up to date.
 - **Obsidian** is just the folder where the markdown lives. Obsidian indexes it for you; mm reads and writes the files directly.
 
 ---
@@ -142,6 +142,17 @@ Twelve skills on the Claude Code side, plus one on the claude.ai side — and ve
 | `mm-web-bridge` *(claude.ai)* | Idea partner + prompt composer in the browser |
 | `ecc-security-review` *(vendored — [ECC](https://github.com/affaan-m/everything-claude-code), MIT)* | Security checklist: secrets, input validation, SQLi, auth, XSS/CSRF, rate limiting |
 | `ecc-search-first` *(vendored — [ECC](https://github.com/affaan-m/everything-claude-code), MIT)* | Research before coding: search existing tools/libs/MCP/skills, then adopt / extend / build |
+
+---
+
+## MCP-инструменты
+
+mm ships a small local **stdio** MCP server (`mm-mcp`, TypeScript) that exposes two deterministic, read-only tools to local agents (Claude Code / Desktop / Antigravity):
+
+- `mm_secret_scan` — scan text for secrets against the canonical `config/secret-patterns.json`; returns classes and counts only, never the raw secret value.
+- `mm_health` — read-only health checks of the mm install (config, junctions, vault-git, passport/gsd); returns `checks[]` + `summary`.
+
+Build, registration (`claude mcp add … mm-mcp …`), scope, and tests — see [`mcp/README.md`](mcp/README.md).
 
 ---
 
