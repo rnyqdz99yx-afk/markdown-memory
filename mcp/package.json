@@ -1,6 +1,6 @@
 {
   "name": "mm-mcp",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "type": "module",
   "description": "mm-система MCP-сервер (stdio): инструменты mm_secret_scan (скан текста на секреты по config/secret-patterns.json) и mm_health (детерминированный read-only движок проверок здоровья mm-системы).",

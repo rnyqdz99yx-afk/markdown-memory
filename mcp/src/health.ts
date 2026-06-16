@@ -277,16 +277,27 @@ function vaultChecks(
   projectRoot: string,
   projectName: string,
   config: MmConfig | null,
+  passportExists: boolean,
 ): HealthCheck[] {
   const checks: HealthCheck[] = [];
   const vault = resolveVault(projectRoot, projectName, config);
 
   if (!vault) {
-    checks.push({
-      id: 'vault.resolve',
-      status: 'warn',
-      detail: 'vault не найден (CLAUDE.md секция / .vault / obsidian_projects)',
-    });
+    // Нет passport.md → проект не инициализирован для mm, vault по имени неприменим → na.
+    // Passport есть, а vault не найден → warn (легитимно: /mm vault ещё не запускали).
+    checks.push(
+      passportExists
+        ? {
+            id: 'vault.resolve',
+            status: 'warn',
+            detail: 'vault не найден (CLAUDE.md секция / .vault / obsidian_projects)',
+          }
+        : {
+            id: 'vault.resolve',
+            status: 'na',
+            detail: 'проект не инициализирован для mm (нет passport.md) — vault не применим',
+          },
+    );
     return checks;
   }
   checks.push({ id: 'vault.resolve', status: 'ok', detail: `vault: ${vault}` });
@@ -434,7 +445,7 @@ export function runHealth(projectRoot?: string): HealthResult {
       passport.exists && typeof passport.data?.name === 'string' && passport.data.name
         ? String(passport.data.name)
         : path.basename(projectRoot);
-    checks.push(...vaultChecks(projectRoot, projectName, cfg.config));
+    checks.push(...vaultChecks(projectRoot, projectName, cfg.config, passport.exists));
     checks.push(...passportChecks(projectRoot, passport));
   }
 
